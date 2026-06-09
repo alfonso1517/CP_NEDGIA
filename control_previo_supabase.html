@@ -1011,6 +1011,7 @@ async function onLoginSuccess(){
     document.getElementById('admin-upload-panel').style.display='';
     document.getElementById('user-load-panel').style.display='none';
     await loadCurrentUploadMeta();
+    await silentLoadForAdmin();
   } else {
     document.getElementById('admin-upload-panel').style.display='none';
     document.getElementById('user-load-panel').style.display='';
@@ -1129,6 +1130,34 @@ async function autoLoadFromStorage(){
       status.textContent='¡Datos cargados correctamente!';
     });
   }, 80);
+}
+
+/* ─────────────────────────────────────────────
+   SILENT LOAD FOR ADMIN (carga sin navegar)
+───────────────────────────────────────────── */
+async function silentLoadForAdmin(){
+  try {
+    const { data: list } = await sb.storage.from(BUCKET).list();
+    const hasF1 = list?.find(f=>f.name===FILE1_KEY);
+    const hasF2 = list?.find(f=>f.name===FILE2_KEY);
+    if(!hasF1 || !hasF2) return;
+    const { data: blob1 } = await sb.storage.from(BUCKET).download(FILE1_KEY);
+    const { data: blob2 } = await sb.storage.from(BUCKET).download(FILE2_KEY);
+    if(!blob1 || !blob2) return;
+    const f1 = new File([blob1], FILE1_KEY);
+    const f2 = new File([blob2], FILE2_KEY);
+    readExcel(f1, data1=>{
+      readExcel(f2, data2=>{
+        setTimeout(()=>{
+          try {
+            ROWS = crossData(data1, data2);
+            buildDashboard();
+            unlockNav();
+          } catch(e){ console.error('Admin silent load error:', e); }
+        }, 50);
+      });
+    });
+  } catch(e){ console.error('Admin silent load error:', e); }
 }
 
 /* ─────────────────────────────────────────────
@@ -1662,7 +1691,7 @@ function buildContPage(rows){
     err:  c.total?+(c.err /c.total*100).toFixed(1):0,
     total:c.total, ok_n:c.ok, warn_n:c.warn, err_n:c.err
   }));
-  // ch-cont-stack replaced by ch-cont-scatter (see buildContScatter)
+  buildContScatter();
 
   // ── CHART 2: % CP OK ordenado de mejor a peor
   const pctSorted=[...CONT_STATS].filter(c=>c.total>=3)
