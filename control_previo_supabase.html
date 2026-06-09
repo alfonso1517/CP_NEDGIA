@@ -406,6 +406,19 @@ table.dt tr:hover td{background:#f5f8ff;color:var(--navy);}
             </div>
           </div>
         </div>
+        <div class="msel" id="res-panio">
+          <div class="msel-btn" onclick="toggleMsel('res-panio',event)">
+            <span class="msel-lbl">Año</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('res-panio')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('res-panio')">Limpiar</button>
+            </div>
+          </div>
+        </div>
         <button class="pf-clear" onclick="clearPageBar('res')">✕ Limpiar todo</button>
       </div>
       <div class="ph">
@@ -426,6 +439,65 @@ table.dt tr:hover td{background:#f5f8ff;color:var(--navy);}
 
     <!-- POR CONTRATISTA -->
     <div class="pane" id="p-tec">
+      <div class="pf-bar">
+        <span class="pf-label">Filtros:</span>
+        <div class="msel" id="tec-pcont">
+          <div class="msel-btn" onclick="toggleMsel('tec-pcont',event)">
+            <span class="msel-lbl">Contratista</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-srch"><input placeholder="Buscar..." oninput="mselSearch('tec-pcont',this.value)"></div>
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('tec-pcont')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('tec-pcont')">Limpiar</button>
+            </div>
+          </div>
+        </div>
+        <div class="msel" id="tec-pzona">
+          <div class="msel-btn" onclick="toggleMsel('tec-pzona',event)">
+            <span class="msel-lbl">Zona</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-srch"><input placeholder="Buscar..." oninput="mselSearch('tec-pzona',this.value)"></div>
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('tec-pzona')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('tec-pzona')">Limpiar</button>
+            </div>
+          </div>
+        </div>
+        <div class="msel" id="tec-pmes">
+          <div class="msel-btn" onclick="toggleMsel('tec-pmes',event)">
+            <span class="msel-lbl">Mes</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-srch"><input placeholder="Buscar..." oninput="mselSearch('tec-pmes',this.value)"></div>
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('tec-pmes')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('tec-pmes')">Limpiar</button>
+            </div>
+          </div>
+        </div>
+        <div class="msel" id="tec-panio">
+          <div class="msel-btn" onclick="toggleMsel('tec-panio',event)">
+            <span class="msel-lbl">Año</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('tec-panio')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('tec-panio')">Limpiar</button>
+            </div>
+          </div>
+        </div>
+        <button class="pf-clear" onclick="clearPageBar('tec')">✕ Limpiar todo</button>
+      </div>
       <div class="ph">
         <div><div class="ptitle">Análisis por Contratista</div><div class="psub">Cumplimiento de Control Previo desglosado por empresa contratista</div></div>
         <button class="dl-btn" onclick="exportContratistas()">&#11015; Exportar contratistas</button>
@@ -525,6 +597,19 @@ table.dt tr:hover td{background:#f5f8ff;color:var(--navy);}
             </div>
           </div>
         </div>
+        <div class="msel" id="rc-panio">
+          <div class="msel-btn" onclick="toggleMsel('rc-panio',event)">
+            <span class="msel-lbl">Año</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('rc-panio')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('rc-panio')">Limpiar</button>
+            </div>
+          </div>
+        </div>
         <button class="pf-clear" onclick="clearPageBar('rc')">✕ Limpiar todo</button>
       </div>
       <div class="ph">
@@ -597,6 +682,19 @@ table.dt tr:hover td{background:#f5f8ff;color:var(--navy);}
             </div>
           </div>
         </div>
+        <div class="msel" id="sincp-panio">
+          <div class="msel-btn" onclick="toggleMsel('sincp-panio',event)">
+            <span class="msel-lbl">Año</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('sincp-panio')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('sincp-panio')">Limpiar</button>
+            </div>
+          </div>
+        </div>
         <button class="pf-clear" onclick="clearPageBar('sincp')">✕ Limpiar todo</button>
       </div>
       <div class="ph">
@@ -624,6 +722,65 @@ table.dt tr:hover td{background:#f5f8ff;color:var(--navy);}
 
     <!-- OPERARIOS -->
     <div class="pane" id="p-oper">
+      <div class="pf-bar">
+        <span class="pf-label">Filtros:</span>
+        <div class="msel" id="oper-pcont">
+          <div class="msel-btn" onclick="toggleMsel('oper-pcont',event)">
+            <span class="msel-lbl">Contratista</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-srch"><input placeholder="Buscar..." oninput="mselSearch('oper-pcont',this.value)"></div>
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('oper-pcont')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('oper-pcont')">Limpiar</button>
+            </div>
+          </div>
+        </div>
+        <div class="msel" id="oper-pzona">
+          <div class="msel-btn" onclick="toggleMsel('oper-pzona',event)">
+            <span class="msel-lbl">Zona</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-srch"><input placeholder="Buscar..." oninput="mselSearch('oper-pzona',this.value)"></div>
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('oper-pzona')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('oper-pzona')">Limpiar</button>
+            </div>
+          </div>
+        </div>
+        <div class="msel" id="oper-pmes">
+          <div class="msel-btn" onclick="toggleMsel('oper-pmes',event)">
+            <span class="msel-lbl">Mes</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-srch"><input placeholder="Buscar..." oninput="mselSearch('oper-pmes',this.value)"></div>
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('oper-pmes')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('oper-pmes')">Limpiar</button>
+            </div>
+          </div>
+        </div>
+        <div class="msel" id="oper-panio">
+          <div class="msel-btn" onclick="toggleMsel('oper-panio',event)">
+            <span class="msel-lbl">Año</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('oper-panio')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('oper-panio')">Limpiar</button>
+            </div>
+          </div>
+        </div>
+        <button class="pf-clear" onclick="clearPageBar('oper')">✕ Limpiar todo</button>
+      </div>
       <div class="ph">
         <div><div class="ptitle">Control por Operario</div><div class="psub">Rendimiento de cada operario en el cumplimiento del Control Previo</div></div>
         <button class="dl-btn" onclick="exportOperarios()">&#11015; Exportar ranking</button>
@@ -1470,10 +1627,11 @@ let contPage = 0;
 let contDetPage = 0;
 let contDetRows = [];
 
-function buildContPage(){
+function buildContPage(rows){
+  rows = rows || ROWS;
   // Build stats
   const map={};
-  for(const r of ROWS){
+  for(const r of rows){
     const c=r._cont||'Sin contratista';
     if(!map[c]) map[c]={name:c,total:0,ok:0,warn:0,err:0,rcErr:0,rows:[]};
     map[c].total++;
@@ -1539,7 +1697,7 @@ function buildContPage(){
 
   // ── CHART 3: Trend mensual en % (% CP OK y % Sin CP por mes)
   const months={};
-  for(const r of ROWS){
+  for(const r of rows){
     const m=dateToMonth(r._parsedEjec)||'Sin fecha';
     if(!months[m]) months[m]={ok:0,warn:0,err:0};
     months[m][r._cpStatus]++;
@@ -1566,7 +1724,7 @@ function buildContPage(){
 
   // Zona chart (sin CP)
   const zMap={};
-  for(const r of ROWS){
+  for(const r of rows){
     if(r._cpStatus==='err'){
       const z=r._zona||'Sin zona';
       zMap[z]=(zMap[z]||0)+1;
@@ -1939,9 +2097,10 @@ let operDetRows = [];
 
 let OPER_CONT_FILTER = ''; // active contratista filter for operarios page
 
-function buildOperStats(contFilter){
-  contFilter = contFilter || '';
-  const sourceRows = contFilter ? ROWS.filter(r=>r._cont===contFilter) : ROWS;
+function buildOperStats(rowsOrFilter){
+  let sourceRows;
+  if(Array.isArray(rowsOrFilter)) sourceRows = rowsOrFilter;
+  else { const f = rowsOrFilter||''; sourceRows = f ? ROWS.filter(r=>r._cont===f) : ROWS; }
   const map = {};
   for(const r of sourceRows){
     const names = String(r._operario||'').split(/[;\t]/).map(n=>n.trim().replace(/\s+/g,' ')).filter(Boolean);
@@ -2292,11 +2451,12 @@ function populatePageBars(){
     {val:'err', lbl:'❌ Sin CP'}
   ];
 
-  // Page filter bars
-  ['res','rc','sincp'].forEach(pid => {
+  // Page filter bars — all analytics pages
+  ['res','rc','sincp','tec','oper'].forEach(pid => {
     initMsel(pid+'-pcont', conts, 'Contratista', ()=>rebuildPage(pid));
     initMsel(pid+'-pzona', zonas, 'Zona',         ()=>rebuildPage(pid));
     initMsel(pid+'-pmes',  meses, 'Mes',           ()=>rebuildPage(pid));
+    initMsel(pid+'-panio', anios, 'Año',            ()=>rebuildPage(pid));
   });
 
   // Tabla completa — all msel
@@ -2308,7 +2468,7 @@ function populatePageBars(){
 }
 
 function clearPageBar(pid){
-  ['pcont','pzona','pmes'].forEach(k => mselClear(pid+'-'+k));
+  ['pcont','pzona','pmes','panio'].forEach(k => mselClear(pid+'-'+k));
   rebuildPage(pid);
 }
 
@@ -2317,6 +2477,7 @@ function getPageRows(pid){
   const conts = getMsel(pid+'-pcont');
   const zonas = getMsel(pid+'-pzona');
   const meses = getMsel(pid+'-pmes');
+  const anios = getMsel(pid+'-panio');
   let src = ROWS;
   if(pid==='rc')    src = RC_ROWS;
   if(pid==='sincp') src = SINCP_ROWS;
@@ -2325,6 +2486,7 @@ function getPageRows(pid){
     if(zonas.length && !zonas.includes(r._zona)) return false;
     const m = dateToMonth(r._parsedEjec)||'Sin fecha';
     if(meses.length && !meses.includes(m)) return false;
+    if(anios.length && !anios.includes(r._anio)) return false;
     return true;
   });
 }
@@ -2339,7 +2501,7 @@ function getPageRows_OLD(pid){
   return src.filter(r=>(!cont||r._cont===cont)&&(!anio||r._anio===anio));
 }
 
-function getPageRows_flag(pid){const c=getMsel(pid+"-pcont"),z=getMsel(pid+"-pzona"),m=getMsel(pid+"-pmes");return c.length||z.length||m.length;}
+function getPageRows_flag(pid){const c=getMsel(pid+"-pcont"),z=getMsel(pid+"-pzona"),m=getMsel(pid+"-pmes"),a=getMsel(pid+"-panio");return c.length||z.length||m.length||a.length;}
 function rebuildPage(pid){
   const rows = getPageRows(pid);
   if(pid==='res'){
@@ -2381,15 +2543,18 @@ function rebuildPage(pid){
     buildSinCPChartsFromData(rows);
     sincpFiltered=rows; renderSinCPTable();
   }
+  if(pid==='tec'){
+    contPage=0;
+    buildContPage(rows);
+  }
+  if(pid==='oper'){
+    buildOperStats(rows);
+    buildOperKpis();
+    buildOperCharts();
+    filterOperarios();
+  }
 }
 
-function clearPageBar(pid){
-  const c=document.getElementById(pid+'-pcont');
-  const a=document.getElementById(pid+'-panio');
-  if(c) c.value='';
-  if(a) a.value='';
-  rebuildPage(pid);
-}
 
 function populatePageBars_OLD(){
   const conts=[...new Set(ROWS.map(r=>r._cont).filter(Boolean))].sort();
