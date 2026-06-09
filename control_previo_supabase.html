@@ -1,0 +1,2602 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análisis Control Previo</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef1f6;--surf:#ffffff;--surf2:#f4f6fa;--surf3:#e8ecf3;
+  --bdr:#dce2ed;--bdr2:#c8d0e0;
+  --navy:#1a2f5e;--navy2:#152345;
+  --acc:#f0a500;--acc2:#d4920a;
+  --text:#1a2f5e;--dim:#4a5e7e;--muted:#8295aa;
+  --green:#059669;--amber:#d97706;--red:#dc2626;--blue:#2563eb;--purple:#7c3aed;
+  --sans:'IBM Plex Sans',sans-serif;--mono:'IBM Plex Mono',monospace;
+  --H:54px;--SB:218px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--sans);}
+
+/* HEADER */
+#hdr{height:var(--H);background:var(--navy);border-bottom:3px solid var(--acc);display:flex;align-items:center;justify-content:space-between;padding:0 22px;z-index:50;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.hbrand{display:flex;align-items:center;gap:14px;}
+.hbrand-sep{width:1px;height:28px;background:rgba(255,255,255,.18);}
+.hbrand h1{font-size:13px;font-weight:600;letter-spacing:.02em;color:rgba(255,255,255,.75);}
+.hbrand-logo{font-size:16px;font-weight:700;color:#fbbf24;font-family:var(--mono);letter-spacing:-.02em;}
+.hr{display:flex;align-items:center;gap:8px;}
+.pill{font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:4px;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);}
+.pill.g{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.4);color:#34d399;}
+.pill.a{background:rgba(240,165,0,.2);border-color:rgba(240,165,0,.5);color:#fbbf24;}
+.hbtn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);border-radius:5px;padding:5px 13px;font-size:11px;font-weight:600;cursor:pointer;transition:background .15s;}
+.hbtn:hover{background:rgba(255,255,255,.15);color:#fff;}
+.hbtn.acc{background:var(--acc);border-color:var(--acc);color:var(--navy);font-weight:700;}
+.hbtn.acc:hover{background:var(--acc2);}
+
+/* APP LAYOUT */
+#app{display:flex;height:calc(100vh - var(--H));overflow:hidden;}
+
+/* SIDEBAR */
+#sb{width:var(--SB);min-width:var(--SB);background:var(--navy);display:flex;flex-direction:column;overflow:hidden;box-shadow:2px 0 8px rgba(0,0,0,.12);}
+.nsec{padding:16px 14px 5px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.3);}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;font-size:12px;font-weight:500;color:rgba(255,255,255,.5);transition:background .1s,color .1s;border-left:3px solid transparent;user-select:none;}
+.ni:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85);border-left-color:rgba(240,165,0,.4);}
+.ni.on{background:rgba(240,165,0,.12);color:#fbbf24;border-left:3px solid var(--acc);font-weight:600;}
+.nic{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+.ni-ct{background:rgba(255,255,255,.15);border-radius:10px;font-size:10px;font-family:var(--mono);padding:1px 6px;margin-left:auto;color:rgba(255,255,255,.6);}
+.ni.on .ni-ct{background:rgba(240,165,0,.3);color:#fbbf24;}
+.sbbot{margin-top:auto;padding:12px 14px;border-top:1px solid rgba(255,255,255,.07);}
+.sbinfo{font-size:10px;color:rgba(255,255,255,.3);font-family:var(--mono);line-height:1.8;}
+
+/* CONTENT */
+#cnt{flex:1;overflow:hidden;position:relative;background:var(--bg);}
+.pane{display:none!important;}
+.pane.on{display:block!important;height:100%;overflow-y:auto;padding:20px 24px 32px;box-sizing:border-box;}
+#p-up.on{display:flex!important;align-items:center;justify-content:center;}
+#p-up.on{align-items:center;justify-content:center;}
+
+/* UPLOAD */
+.upload-wrap{max-width:680px;width:100%;text-align:center;}
+.upload-wrap h2{font-size:22px;font-weight:700;color:var(--navy);margin-bottom:6px;}
+.upload-wrap p{font-size:13px;color:var(--dim);margin-bottom:24px;line-height:1.6;}
+.upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.dz{border:2px dashed var(--bdr2);border-radius:10px;padding:28px 20px;cursor:pointer;transition:border-color .2s,background .2s;background:var(--surf);}
+.dz:hover,.dz.over{border-color:var(--acc);background:#fef9ec;}
+.dz.done{border-color:var(--green);background:#f0fdf4;}
+.dz-icon{font-size:32px;margin-bottom:10px;opacity:.6;}
+.dz h3{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:4px;}
+.dz p{font-size:11px;color:var(--muted);}
+.dz-file{margin-top:10px;font-size:11px;font-family:var(--mono);color:var(--green);font-weight:600;}
+.dz input{display:none;}
+.process-btn{background:var(--navy);color:#fff;border:none;border-radius:7px;padding:13px 32px;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s;width:100%;}
+.process-btn:hover{background:var(--navy2);}
+.process-btn:disabled{opacity:.4;cursor:default;}
+.hint{font-size:11px;font-family:var(--mono);color:var(--muted);line-height:1.9;margin-top:14px;}
+.hint code{color:var(--navy);background:var(--surf2);padding:1px 5px;border-radius:3px;}
+
+/* SECTION HEADER */
+.ph{margin-bottom:16px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.ptitle{font-size:16px;font-weight:700;color:var(--navy);}
+.psub{font-size:11px;font-family:var(--mono);color:var(--muted);margin-top:2px;}
+
+/* KPI ROW */
+.kr{display:grid;gap:12px;margin-bottom:16px;}
+.kr-5{grid-template-columns:repeat(5,1fr);}
+.kr-4{grid-template-columns:repeat(4,1fr);}
+.kr-3{grid-template-columns:repeat(3,1fr);}
+.kpi{background:var(--surf);border:1px solid var(--bdr);border-radius:8px;padding:15px 18px;position:relative;overflow:hidden;box-shadow:0 1px 4px rgba(26,47,94,.06);}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:8px 8px 0 0;}
+.k-gray::before{background:#94a3b8;}
+.k-green::before{background:var(--green);}
+.k-amber::before{background:var(--amber);}
+.k-red::before{background:var(--red);}
+.k-blue::before{background:var(--blue);}
+.k-navy::before{background:var(--navy);}
+.k-purple::before{background:var(--purple);}
+.kv{font-family:var(--mono);font-size:28px;font-weight:600;line-height:1;margin-bottom:4px;color:var(--navy);}
+.kl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+.ks{font-size:11px;font-family:var(--mono);color:var(--muted);margin-top:4px;}
+.ks em{color:var(--navy);font-style:normal;font-weight:600;}
+
+/* CHART GRID */
+.g1{margin-bottom:14px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+.g13{display:grid;grid-template-columns:1fr 3fr;gap:14px;margin-bottom:14px;}
+.g31{display:grid;grid-template-columns:3fr 1fr;gap:14px;margin-bottom:14px;}
+.cc{background:var(--surf);border:1px solid var(--bdr);border-radius:8px;padding:16px 18px;box-shadow:0 1px 4px rgba(26,47,94,.06);}
+.ct{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:1px;}
+.cs{font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:10px;}
+.cw{position:relative;}
+.cw canvas{display:block;width:100%!important;}
+
+/* INFO BOX */
+.ibox{border-radius:7px;padding:12px 16px;margin-bottom:14px;font-size:12px;line-height:1.8;color:var(--dim);}
+.ibox.blue{background:#eff6ff;border:1px solid #bfdbfe;border-left:4px solid var(--blue);}
+.ibox.amber{background:#fffbeb;border:1px solid #fde68a;border-left:4px solid var(--amber);}
+.ibox.red{background:#fef2f2;border:1px solid #fecaca;border-left:4px solid var(--red);}
+.ibox strong{color:var(--navy);}
+
+/* TABLE */
+.tw{background:var(--surf);border:1px solid var(--bdr);border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(26,47,94,.06);}
+.th{padding:10px 14px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;background:var(--surf2);}
+.ttl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);}
+.tct{font-size:11px;font-family:var(--mono);color:var(--navy);}
+.fr{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.fs,.fi{background:var(--surf);border:1px solid var(--bdr);color:var(--text);border-radius:5px;padding:5px 9px;font-family:var(--sans);font-size:11px;outline:none;}
+.fs:focus,.fi:focus{border-color:var(--navy);box-shadow:0 0 0 2px rgba(26,47,94,.1);}
+.fi{font-family:var(--mono);width:170px;}
+.tscroll{overflow-x:auto;}
+table.dt{width:100%;border-collapse:collapse;font-size:11px;}
+table.dt th{background:var(--surf2);padding:9px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--bdr);cursor:pointer;user-select:none;white-space:nowrap;}
+table.dt th:hover{color:var(--navy);}
+table.dt td{padding:7px 12px;border-bottom:1px solid #f0f3f8;color:var(--dim);vertical-align:middle;white-space:nowrap;}
+table.dt tr:last-child td{border-bottom:none;}
+table.dt tr:hover td{background:#f5f8ff;color:var(--navy);}
+.bg{display:inline-flex;align-items:center;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;font-family:var(--mono);white-space:nowrap;}
+.bg-ok{background:#dcfce7;color:#166534;}
+.bg-warn{background:#fef3c7;color:#92400e;}
+.bg-err{background:#fee2e2;color:#991b1b;}
+.bg-rc{background:#ede9fe;color:#5b21b6;}
+.bg-na{background:#f1f5f9;color:#64748b;}
+.pg{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-top:1px solid var(--bdr);font-size:11px;color:var(--muted);background:var(--surf2);}
+.pbs{display:flex;gap:3px;}
+.pb{background:var(--surf);border:1px solid var(--bdr);color:var(--dim);border-radius:4px;padding:4px 9px;font-size:11px;cursor:pointer;transition:background .1s;}
+.pb:hover,.pb.on{background:var(--navy);border-color:var(--navy);color:#fff;}
+.pb:disabled{opacity:.3;cursor:default;}
+
+/* DOWNLOAD BTN */
+.dl-btn{background:var(--navy);color:#fff;border:none;border-radius:5px;padding:5px 11px;font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:background .15s;}
+.dl-btn:hover{background:var(--navy2);}
+
+/* TÉCNICO TABLE */
+.rk-table{width:100%;border-collapse:collapse;font-size:11px;}
+.rk-table th{padding:8px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--bdr);background:var(--surf2);}
+.rk-table td{padding:7px 12px;border-bottom:1px solid #f0f3f8;color:var(--dim);}
+.rk-table tr:hover td{background:#f5f8ff;}
+.bar-cell{display:flex;align-items:center;gap:8px;}
+.bar-fill{height:6px;border-radius:3px;min-width:2px;}
+.bar-green{background:var(--green);}
+.bar-amber{background:var(--amber);}
+.bar-red{background:var(--red);}
+
+/* ── CUSTOM MULTI-SELECT ── */
+.msel{position:relative;display:inline-block;}
+.msel-btn{display:flex;align-items:center;gap:6px;background:var(--surf);border:1px solid var(--bdr);border-radius:5px;padding:5px 10px;cursor:pointer;font-size:11px;color:var(--text);user-select:none;white-space:nowrap;min-width:130px;font-family:var(--sans);}
+.msel-btn:hover{border-color:var(--navy);}
+.msel.has-val .msel-btn{border-color:var(--navy);background:#eff6ff;font-weight:600;color:var(--navy);}
+.msel-lbl{flex:1;overflow:hidden;text-overflow:ellipsis;}
+.msel-badge{background:var(--navy);color:#fff;border-radius:8px;font-size:9px;font-weight:700;padding:1px 5px;font-family:var(--mono);flex-shrink:0;}
+.msel-arr{font-size:9px;color:var(--muted);flex-shrink:0;transition:transform .15s;}
+.msel.open .msel-arr{transform:rotate(180deg);}
+.msel-drop{position:absolute;top:calc(100% + 5px);left:0;z-index:200;background:var(--surf);border:1px solid var(--bdr);border-radius:8px;box-shadow:0 8px 24px rgba(26,47,94,.15);min-width:220px;max-width:300px;display:none;overflow:hidden;}
+.msel.open .msel-drop{display:block;}
+.msel-srch{padding:8px 10px;border-bottom:1px solid var(--bdr);background:var(--surf2);}
+.msel-srch input{width:100%;border:1px solid var(--bdr);border-radius:4px;padding:4px 8px;font-size:11px;outline:none;font-family:var(--sans);background:var(--surf);}
+.msel-srch input:focus{border-color:var(--navy);}
+.msel-list{max-height:200px;overflow-y:auto;}
+.msel-item{display:flex;align-items:center;gap:9px;padding:7px 12px;cursor:pointer;font-size:11px;color:var(--dim);}
+.msel-item:hover{background:var(--surf2);}
+.msel-item input[type=checkbox]{cursor:pointer;accent-color:var(--navy);width:13px;height:13px;flex-shrink:0;}
+.msel-item.checked{background:#eff6ff;color:var(--navy);font-weight:600;}
+.msel-foot{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;border-top:1px solid var(--bdr);background:var(--surf2);}
+.msel-foot-a{font-size:10px;font-weight:700;cursor:pointer;color:var(--navy);border:none;background:none;font-family:var(--sans);padding:2px 0;}
+.msel-foot-a:hover{text-decoration:underline;}
+.msel-foot-sep{color:var(--bdr2);}
+
+/* PAGE FILTER BAR */
+.pf-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;padding:9px 14px;margin-bottom:14px;}
+.pf-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);white-space:nowrap;}
+.pf-clear{background:none;border:1px solid var(--bdr2);color:var(--dim);border-radius:4px;padding:4px 10px;font-size:10px;font-weight:600;cursor:pointer;font-family:var(--sans);margin-left:auto;}
+.pf-clear:hover{background:var(--surf3);color:var(--navy);}
+/* MULTI-SELECT TAGS */
+.ftag{cursor:pointer;user-select:none;transition:all .12s;}
+.ftag.active{opacity:1;box-shadow:0 0 0 2px currentColor;}
+.ftag:not(.active){opacity:.45;}
+.ftag:hover{opacity:.85;}
+.fs.active-f{border-color:var(--navy);background:#eff6ff;color:var(--navy);font-weight:600;}
+.active-filters{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:7px 12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;margin-bottom:8px;font-size:11px;color:var(--navy);}
+.active-filters span{font-weight:600;}
+.af-tag{display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid #93c5fd;border-radius:10px;padding:2px 8px;font-size:10px;font-weight:600;color:#1e40af;}
+.af-clear{margin-left:auto;background:none;border:1px solid #bfdbfe;color:var(--navy);border-radius:4px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:var(--sans);font-weight:600;}
+.af-clear:hover{background:#dbeafe;}
+
+/* LOADER */
+#ld{display:none;position:fixed;inset:0;background:rgba(26,47,94,.5);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:12px;backdrop-filter:blur(2px);}
+#ld.on{display:flex;}
+
+/* AUTH SCREEN */
+#auth-screen{position:fixed;inset:0;z-index:10000;background:var(--navy);display:flex;align-items:center;justify-content:center;}
+#auth-screen.hidden{display:none;}
+.auth-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:40px 44px;width:100%;max-width:380px;text-align:center;}
+.auth-logo{font-size:22px;font-weight:700;color:#fbbf24;font-family:var(--mono);letter-spacing:-.02em;margin-bottom:6px;}
+.auth-sub{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:32px;}
+.auth-field{margin-bottom:14px;text-align:left;}
+.auth-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.4);display:block;margin-bottom:6px;}
+.auth-input{width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:11px 14px;font-size:13px;color:#fff;outline:none;font-family:var(--sans);transition:border-color .15s;}
+.auth-input:focus{border-color:var(--acc);background:rgba(255,255,255,.1);}
+.auth-input::placeholder{color:rgba(255,255,255,.25);}
+.auth-btn{width:100%;background:var(--acc);color:var(--navy);border:none;border-radius:7px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px;transition:background .15s;font-family:var(--sans);}
+.auth-btn:hover{background:var(--acc2);}
+.auth-btn:disabled{opacity:.5;cursor:default;}
+.auth-err{font-size:12px;color:#f87171;margin-top:12px;min-height:18px;font-family:var(--mono);}
+.auth-spinner{display:none;width:20px;height:20px;border:2px solid rgba(255,255,255,.2);border-top-color:var(--acc);border-radius:50%;animation:rot .7s linear infinite;margin:0 auto;}
+.auth-spinner.on{display:block;}
+.cloud-load-box{text-align:center;padding:40px 24px;background:var(--surf);border:1px solid var(--bdr);border-radius:10px;}
+.cloud-load-box .sp2{width:28px;height:28px;border:2.5px solid var(--bdr2);border-top-color:var(--navy);border-radius:50%;animation:rot .7s linear infinite;margin:0 auto 14px;}
+.upload-meta{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:14px 18px;margin-top:18px;text-align:left;font-size:12px;color:#166534;font-family:var(--mono);line-height:2;}
+.upload-meta strong{color:#14532d;}
+.sp{width:32px;height:32px;border:3px solid rgba(255,255,255,.3);border-top-color:var(--acc);border-radius:50%;animation:rot .7s linear infinite;}
+@keyframes rot{to{transform:rotate(360deg)}}
+#lm{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.8);}
+
+/* PROGRESS BAR */
+.progress-bar{height:4px;background:var(--bdr);border-radius:2px;margin-top:8px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--acc);border-radius:2px;transition:width .3s;}
+
+/* FILTER TAGS */
+.filter-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.ftag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:12px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .15s;}
+.ftag.all{background:var(--navy);color:#fff;border-color:var(--navy);}
+.ftag.ok{background:#dcfce7;color:#166534;border-color:#bbf7d0;}
+.ftag.warn{background:#fef3c7;color:#92400e;border-color:#fde68a;}
+.ftag.err{background:#fee2e2;color:#991b1b;border-color:#fecaca;}
+.ftag.rc{background:#ede9fe;color:#5b21b6;border-color:#ddd6fe;}
+.ftag:not(.active){opacity:.55;}
+.ftag.active{opacity:1;}
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">CP//</div>
+    <div class="auth-sub">Análisis Control Previo · Nedgia</div>
+    <div class="auth-field">
+      <label class="auth-label">Email corporativo</label>
+      <input class="auth-input" type="email" id="auth-email" placeholder="nombre@nedgia.es" autocomplete="email">
+    </div>
+    <div class="auth-field">
+      <label class="auth-label">Contraseña</label>
+      <input class="auth-input" type="password" id="auth-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="auth-btn" id="auth-btn" onclick="doLogin()">Entrar</button>
+    <div class="auth-spinner" id="auth-spinner"></div>
+    <div class="auth-err" id="auth-err"></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div id="hdr">
+  <div class="hbrand">
+    <span class="hbrand-logo">CP//</span>
+    <div class="hbrand-sep"></div>
+    <h1>Análisis Control Previo</h1>
+  </div>
+  <div class="hr">
+    <span class="pill a" id="hd-ops" style="display:none"></span>
+    <span class="pill g" id="hd-date" style="display:none"></span>
+    <span class="pill" id="hd-user" style="display:none"></span>
+    <button class="hbtn" id="btn-reset" style="display:none" onclick="resetTool()">↩ Nuevo análisis</button>
+    <button class="hbtn" id="btn-logout" style="display:none" onclick="doLogout()">Salir</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <div id="sb">
+    <div class="nsec">Navegación</div>
+    <div class="ni on" data-p="p-up" onclick="nav(this)"><span class="nic">📂</span> Cargar ficheros</div>
+    <div class="ni" data-p="p-res" id="ni-res" style="pointer-events:none;opacity:.35" onclick="nav(this)"><span class="nic">📊</span> Resumen <span class="ni-ct" id="ct-total">—</span></div>
+    <div class="ni" data-p="p-tec" id="ni-tec" style="pointer-events:none;opacity:.35" onclick="nav(this)"><span class="nic">🏢</span> Por Contratista <span class="ni-ct" id="ct-tec">—</span></div>
+    <div class="ni" data-p="p-rc" id="ni-rc" style="pointer-events:none;opacity:.35" onclick="nav(this)"><span class="nic">⚠️</span> Recinto Confinado <span class="ni-ct" id="ct-rc">—</span></div>
+    <div class="ni" data-p="p-sincp" id="ni-sincp" style="pointer-events:none;opacity:.35" onclick="nav(this)"><span class="nic">❌</span> Sin Control Previo <span class="ni-ct" id="ct-sincp">—</span></div>
+    <div class="ni" data-p="p-oper" id="ni-oper" style="pointer-events:none;opacity:.35" onclick="nav(this)"><span class="nic">🧑‍🔧</span> Operarios <span class="ni-ct" id="ct-oper">—</span></div>
+    <div class="ni" data-p="p-tabla" id="ni-tabla" style="pointer-events:none;opacity:.35" onclick="nav(this)"><span class="nic">📋</span> Tabla completa <span class="ni-ct" id="ct-tabla">—</span></div>
+    <div class="sbbot">
+      <div class="sbinfo" id="sb-info">Carga los dos ficheros<br>para comenzar el análisis.</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div id="cnt">
+
+    <!-- UPLOAD PAGE -->
+    <div class="pane on" id="p-up">
+      <div class="upload-wrap">
+        <h2>Control Previo — Cruce de Datos</h2>
+        <p>Carga el fichero de <strong>Detalle Control Previo</strong> (con OPARECION_NUM) y el <strong>Informe Operaciones Desglosado</strong> (con ID). La herramienta cruzará ambos, aplicará las reglas OC-ERM+UM y clasificará cada operación.</p>
+
+        <!-- ADMIN UPLOAD PANEL -->
+        <div id="admin-upload-panel" style="display:none">
+          <div class="upload-grid">
+            <div class="dz" id="dz1" ondragover="dzOver(event,'dz1')" ondragleave="dzLeave('dz1')" ondrop="dzDrop(event,1)" onclick="document.getElementById('fi1').click()">
+              <div class="dz-icon">🔐</div>
+              <h3>Detalle Control Previo</h3>
+              <p>Registros de CP realizados<br><small>Columnas requeridas: OPARECION_NUM, FECHA, JEFE_TRABAJOS</small></p>
+              <div class="dz-file" id="dz1-name"></div>
+              <input type="file" id="fi1" accept=".xlsx,.xls" onchange="fileChosen(1,this)">
+            </div>
+            <div class="dz" id="dz2" ondragover="dzOver(event,'dz2')" ondragleave="dzLeave('dz2')" ondrop="dzDrop(event,2)" onclick="document.getElementById('fi2').click()">
+              <div class="dz-icon">📑</div>
+              <h3>Informe Operaciones Desglosado</h3>
+              <p>Todas las operaciones a analizar<br><small>Columnas requeridas: ID, OC-ERM, UM, R.C., Fecha Ejecucion</small></p>
+              <div class="dz-file" id="dz2-name"></div>
+              <input type="file" id="fi2" accept=".xlsx,.xls" onchange="fileChosen(2,this)">
+            </div>
+          </div>
+          <button class="process-btn" id="btn-proc" disabled onclick="uploadAndProcess()">⬆ Subir a Supabase y analizar</button>
+          <div id="upload-progress" style="display:none;margin-top:12px">
+            <div class="progress-bar"><div class="progress-fill" id="upload-pbar" style="width:0%"></div></div>
+            <div style="font-size:11px;font-family:var(--mono);color:var(--muted);margin-top:6px;text-align:center" id="upload-ptext">Subiendo ficheros...</div>
+          </div>
+          <div id="current-upload-meta" style="display:none" class="upload-meta"></div>
+          <div class="hint" style="margin-top:14px">
+            Al subir, los ficheros anteriores se borran automáticamente y todos los usuarios cargarán los nuevos al iniciar sesión.<br>
+            Cruce: <code>ID (Desglosado)</code> = <code>OPARECION_NUM (Detalle)</code>
+          </div>
+        </div>
+
+        <!-- USER AUTO-LOAD PANEL -->
+        <div id="user-load-panel" style="display:none">
+          <div class="cloud-load-box">
+            <div class="sp2" id="cloud-spinner"></div>
+            <div style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:6px" id="cloud-status">Descargando datos desde la nube...</div>
+            <div style="font-size:12px;color:var(--muted);font-family:var(--mono)" id="cloud-sub">Conectando con Supabase</div>
+          </div>
+          <div id="cloud-meta" style="display:none" class="upload-meta"></div>
+          <div id="no-files-banner" style="display:none;margin-top:18px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:18px 22px;text-align:center">
+            <div style="font-size:14px;font-weight:700;color:#991b1b;margin-bottom:6px">⚠ No hay datos disponibles</div>
+            <div style="font-size:12px;color:#b91c1c">El administrador aún no ha subido los ficheros de análisis.<br>Por favor, avísale para que los cargue.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RESUMEN -->
+    <div class="pane" id="p-res">
+      <div class="pf-bar">
+        <span class="pf-label">Filtros:</span>
+        <div class="msel" id="res-pcont">
+          <div class="msel-btn" onclick="toggleMsel('res-pcont',event)">
+            <span class="msel-lbl">Contratista</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-srch"><input placeholder="Buscar..." oninput="mselSearch('res-pcont',this.value)"></div>
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('res-pcont')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('res-pcont')">Limpiar</button>
+            </div>
+          </div>
+        </div>
+        <div class="msel" id="res-pzona">
+          <div class="msel-btn" onclick="toggleMsel('res-pzona',event)">
+            <span class="msel-lbl">Zona</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-srch"><input placeholder="Buscar..." oninput="mselSearch('res-pzona',this.value)"></div>
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('res-pzona')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('res-pzona')">Limpiar</button>
+            </div>
+          </div>
+        </div>
+        <div class="msel" id="res-pmes">
+          <div class="msel-btn" onclick="toggleMsel('res-pmes',event)">
+            <span class="msel-lbl">Mes</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-srch"><input placeholder="Buscar..." oninput="mselSearch('res-pmes',this.value)"></div>
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('res-pmes')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('res-pmes')">Limpiar</button>
+            </div>
+          </div>
+        </div>
+        <button class="pf-clear" onclick="clearPageBar('res')">✕ Limpiar todo</button>
+      </div>
+      <div class="ph">
+        <div><div class="ptitle">Resumen General</div><div class="psub" id="res-sub"></div></div>
+        <button class="dl-btn" onclick="exportPage(getPageRows('res'),'resumen_cp_filtrado.xlsx')">⬇ Exportar (filtrado)</button>
+      </div>
+      <div class="kr kr-5" id="kpi-row"></div>
+      <div class="ibox blue" id="res-info" style="display:none"></div>
+      <div class="g2">
+        <div class="cc"><div class="ct">Distribución Control Previo</div><div class="cs">Clasificación de todas las operaciones</div><div class="cw" style="height:220px"><canvas id="ch-donut"></canvas></div></div>
+        <div class="cc"><div class="ct">Operaciones por mes</div><div class="cs">Fecha de ejecución — estado CP</div><div class="cw" style="height:220px"><canvas id="ch-month"></canvas></div></div>
+      </div>
+      <div class="g2">
+        <div class="cc"><div class="ct">CP por Tipo de Operación</div><div class="cs">Estado de Control Previo por tipo de operación</div><div class="cw" id="ch-tipo-op-wrap" style="height:220px"><canvas id="ch-tipo-op"></canvas></div></div>
+        <div class="cc"><div class="ct">CP por Contratista</div><div class="cs">Estado de Control Previo por empresa</div><div class="cw" style="height:220px"><canvas id="ch-cont"></canvas></div></div>
+      </div>
+    </div>
+
+    <!-- POR CONTRATISTA -->
+    <div class="pane" id="p-tec">
+      <div class="ph">
+        <div><div class="ptitle">Análisis por Contratista</div><div class="psub">Cumplimiento de Control Previo desglosado por empresa contratista</div></div>
+        <button class="dl-btn" onclick="exportContratistas()">&#11015; Exportar contratistas</button>
+      </div>
+      <div class="kr kr-4" id="kpi-cont"></div>
+      <div class="g2">
+        <div class="cc"><div class="ct">Volumen vs Cumplimiento</div><div class="cs">Cada punto = un contratista — eje X: total ops, eje Y: % cumplimiento</div><div class="cw" style="height:260px"><canvas id="ch-cont-scatter"></canvas></div></div>
+        <div class="cc"><div class="ct">% Cumplimiento por Contratista</div><div class="cs">Porcentaje de operaciones con CP (fecha OK o diferente)</div><div class="cw" style="height:260px"><canvas id="ch-cont-pct"></canvas></div></div>
+      </div>
+      <div class="g2">
+        <div class="cc"><div class="ct">Evolución mensual</div><div class="cs">CP OK vs Sin CP por mes en todos los contratistas</div><div class="cw" style="height:240px"><canvas id="ch-cont-trend"></canvas></div></div>
+        <div class="cc"><div class="ct">Sin CP por Zona</div><div class="cs">Distribución geográfica de incumplimientos</div><div class="cw" style="height:240px"><canvas id="ch-zona"></canvas></div></div>
+      </div>
+      <div class="tw">
+        <div class="th">
+          <div><span class="ttl">Ranking Contratistas</span> <span class="tct" id="cont-rank-count"></span></div>
+          <div class="fr">
+            <select class="fs" id="cont-sort-f" onchange="renderContTable()">
+              <option value="total">Por volumen</option>
+              <option value="pct_asc">Peor cumplimiento</option>
+              <option value="pct_desc">Mejor cumplimiento</option>
+              <option value="sincp">Más sin CP</option>
+            </select>
+          </div>
+        </div>
+        <div class="tscroll">
+          <table class="dt" id="cont-rank-table">
+            <thead><tr>
+              <th>#</th><th>Contratista</th><th>Total ops</th><th>✅ CP OK</th><th>⚠️ Fecha dif.</th><th>❌ Sin CP</th><th>⚠️ RC sin CP</th><th>% Cumplimiento</th><th>Valoración</th>
+            </tr></thead>
+            <tbody id="cont-rank-body"></tbody>
+          </table>
+        </div>
+        <div class="pg"><span id="cont-pg-info"></span><div class="pbs" id="cont-pg-btns"></div></div>
+      </div>
+      <div id="cont-detail" style="display:none;margin-top:14px">
+        <div class="ph" style="margin-bottom:10px">
+          <div><div class="ptitle" id="cont-det-name"></div><div class="psub" id="cont-det-sub"></div></div>
+          <button class="dl-btn" onclick="closeContDetail()">✕ Cerrar detalle</button>
+        </div>
+        <div class="tw">
+          <div class="th"><span class="ttl">Operaciones de este contratista</span> <span class="tct" id="cont-det-count"></span></div>
+          <div class="tscroll">
+            <table class="dt" id="cont-det-table">
+              <thead><tr><th>ID</th><th>OC-ERM</th><th>UM</th><th>R.C.</th><th>Tipo Operación</th><th>Fecha Ejec.</th><th>Año</th><th>Estado CP</th><th>Fecha CP</th><th>Operario</th><th>Zona</th></tr></thead>
+              <tbody id="cont-det-body"></tbody>
+            </table>
+          </div>
+          <div class="pg"><span id="cont-det-pg-info"></span><div class="pbs" id="cont-det-pg-btns"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECINTO CONFINADO -->
+    <div class="pane" id="p-rc">
+      <div class="pf-bar">
+        <span class="pf-label">Filtros:</span>
+        <div class="msel" id="rc-pcont">
+          <div class="msel-btn" onclick="toggleMsel('rc-pcont',event)">
+            <span class="msel-lbl">Contratista</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-srch"><input placeholder="Buscar..." oninput="mselSearch('rc-pcont',this.value)"></div>
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('rc-pcont')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('rc-pcont')">Limpiar</button>
+            </div>
+          </div>
+        </div>
+        <div class="msel" id="rc-pzona">
+          <div class="msel-btn" onclick="toggleMsel('rc-pzona',event)">
+            <span class="msel-lbl">Zona</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-srch"><input placeholder="Buscar..." oninput="mselSearch('rc-pzona',this.value)"></div>
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('rc-pzona')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('rc-pzona')">Limpiar</button>
+            </div>
+          </div>
+        </div>
+        <div class="msel" id="rc-pmes">
+          <div class="msel-btn" onclick="toggleMsel('rc-pmes',event)">
+            <span class="msel-lbl">Mes</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-srch"><input placeholder="Buscar..." oninput="mselSearch('rc-pmes',this.value)"></div>
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('rc-pmes')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('rc-pmes')">Limpiar</button>
+            </div>
+          </div>
+        </div>
+        <button class="pf-clear" onclick="clearPageBar('rc')">✕ Limpiar todo</button>
+      </div>
+      <div class="ph">
+        <div><div class="ptitle">Recintos Confinados (R.C.)</div><div class="psub">Operaciones con R.C. = true — Control previo obligatorio</div></div>
+      </div>
+      <div class="kr kr-4" id="kpi-rc"></div>
+      <div class="ibox amber">
+        <strong>⚠️ Recintos Confinados</strong> — Para operaciones en Recinto Confinado el Control Previo es obligatorio. Se considera correcto si la fecha del CP coincide exactamente con la fecha de ejecución. Si la fecha es anterior, no se ha hecho completamente bien. Si no hay registro, no se realizó.
+      </div>
+      <div class="g2">
+        <div class="cc"><div class="ct">Estado CP en Recintos Confinados</div><div class="cs">Distribución de los 3 estados</div><div class="cw" style="height:220px"><canvas id="ch-rc-pie"></canvas></div></div>
+        <div class="cc"><div class="ct">R.C. por Tipo de Operación</div><div class="cs">Desglose por tipo operación</div><div class="cw" style="height:220px"><canvas id="ch-rc-tipo"></canvas></div></div>
+      </div>
+      <div class="tw">
+        <div class="th">
+          <div><span class="ttl">Tabla Recintos Confinados</span> <span class="tct" id="rc-count"></span></div>
+          <div class="fr">
+            <input class="fi" id="rc-search" placeholder="Buscar..." oninput="filterRC()">
+            <select class="fs" id="rc-estado-f" onchange="filterRC()"><option value="">Todos los estados</option><option value="ok">✅ CP OK</option><option value="warn">⚠️ Fecha diferente</option><option value="err">❌ Sin CP</option></select>
+          </div>
+        </div>
+        <div class="tscroll"><table class="dt" id="rc-table"><thead><tr><th>ID</th><th>OC-ERM</th><th>UM</th><th>Tipo Operación</th><th>Fecha Ejecución</th><th>Estado CP</th><th>Fecha CP</th><th>Técnico CP</th><th>Contratista</th><th>Zona</th></tr></thead><tbody id="rc-body"></tbody></table></div>
+        <div class="pg"><span id="rc-pg-info"></span><div class="pbs" id="rc-pg-btns"></div></div>
+      </div>
+    </div>
+
+    <!-- SIN CP -->
+    <div class="pane" id="p-sincp">
+      <div class="pf-bar">
+        <span class="pf-label">Filtros:</span>
+        <div class="msel" id="sincp-pcont">
+          <div class="msel-btn" onclick="toggleMsel('sincp-pcont',event)">
+            <span class="msel-lbl">Contratista</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-srch"><input placeholder="Buscar..." oninput="mselSearch('sincp-pcont',this.value)"></div>
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('sincp-pcont')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('sincp-pcont')">Limpiar</button>
+            </div>
+          </div>
+        </div>
+        <div class="msel" id="sincp-pzona">
+          <div class="msel-btn" onclick="toggleMsel('sincp-pzona',event)">
+            <span class="msel-lbl">Zona</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-srch"><input placeholder="Buscar..." oninput="mselSearch('sincp-pzona',this.value)"></div>
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('sincp-pzona')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('sincp-pzona')">Limpiar</button>
+            </div>
+          </div>
+        </div>
+        <div class="msel" id="sincp-pmes">
+          <div class="msel-btn" onclick="toggleMsel('sincp-pmes',event)">
+            <span class="msel-lbl">Mes</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">▾</span>
+          </div>
+          <div class="msel-drop">
+            <div class="msel-srch"><input placeholder="Buscar..." oninput="mselSearch('sincp-pmes',this.value)"></div>
+            <div class="msel-list"></div>
+            <div class="msel-foot">
+              <button class="msel-foot-a" onclick="mselAll('sincp-pmes')">Seleccionar todos</button>
+              <span class="msel-foot-sep">|</span>
+              <button class="msel-foot-a" onclick="mselClear('sincp-pmes')">Limpiar</button>
+            </div>
+          </div>
+        </div>
+        <button class="pf-clear" onclick="clearPageBar('sincp')">✕ Limpiar todo</button>
+      </div>
+      <div class="ph">
+        <div><div class="ptitle">Operaciones sin Control Previo</div><div class="psub">Operaciones donde no se ha encontrado registro de CP</div></div>
+        <button class="dl-btn" onclick="exportPage(getPageRows('sincp'),'sin_cp_filtrado.xlsx')">⬇ Exportar (filtrado)</button>
+      </div>
+      <div class="ibox red">
+        <strong>❌ Sin Control Previo</strong> — Estas operaciones no tienen ningún registro en el fichero de Detalle CP. Para el cálculo se aplica la regla OC-ERM+UM: si cualquier operación del mismo grupo tiene CP, se da por válido para todas las del grupo.
+      </div>
+      <div class="g2">
+        <div class="cc"><div class="ct">Sin CP por Contratista</div><div class="cs">Número de operaciones sin CP por empresa</div><div class="cw" style="height:220px"><canvas id="ch-sincp-cont"></canvas></div></div>
+        <div class="cc"><div class="ct">Sin CP por Zona</div><div class="cs">Distribución geográfica de las incidencias</div><div class="cw" style="height:220px"><canvas id="ch-sincp-zona"></canvas></div></div>
+      </div>
+      <div class="tw">
+        <div class="th">
+          <div><span class="ttl">Sin Control Previo</span> <span class="tct" id="sincp-count"></span></div>
+          <div class="fr"><input class="fi" id="sincp-search" placeholder="Buscar..." oninput="filterSinCP()">
+            <select class="fs" id="sincp-rc-f" onchange="filterSinCP()"><option value="">Todos</option><option value="rc">Solo R.C.</option><option value="nrc">Sin R.C.</option></select>
+          </div>
+        </div>
+        <div class="tscroll"><table class="dt" id="sincp-table"><thead><tr><th>ID</th><th>OC-ERM</th><th>UM</th><th>R.C.</th><th>Tipo Operación</th><th>Fecha Ejecución</th><th>Contratista</th><th>Zona</th><th>Estado</th><th>Operario</th></tr></thead><tbody id="sincp-body"></tbody></table></div>
+        <div class="pg"><span id="sincp-pg-info"></span><div class="pbs" id="sincp-pg-btns"></div></div>
+      </div>
+    </div>
+
+    <!-- OPERARIOS -->
+    <div class="pane" id="p-oper">
+      <div class="ph">
+        <div><div class="ptitle">Control por Operario</div><div class="psub">Rendimiento de cada operario en el cumplimiento del Control Previo</div></div>
+        <button class="dl-btn" onclick="exportOperarios()">&#11015; Exportar ranking</button>
+      </div>
+      <div class="kr kr-4" id="kpi-oper"></div>
+      <div class="ibox blue">
+        <strong>Metodologia:</strong> Cuando una operacion tiene varios operarios (separados por <code>;</code>), la responsabilidad se asigna a cada uno. Se analiza: operaciones con CP en fecha correcta, con fecha desfasada y sin CP. El <strong>% Cumplimiento</strong> = (CP OK + Fecha dif.) / Total.
+      </div>
+      <div class="g2">
+        <div class="cc"><div class="ct">Top operarios con CP Correcto</div><div class="cs">Operarios con mas operaciones con CP en fecha exacta</div><div class="cw" style="height:260px"><canvas id="ch-oper-top"></canvas></div></div>
+        <div class="cc"><div class="ct">Operarios con mas incumplimientos</div><div class="cs">Sin CP o CP con fecha desfasada</div><div class="cw" style="height:260px"><canvas id="ch-oper-fail"></canvas></div></div>
+      </div>
+      <div class="g2">
+        <div class="cc"><div class="ct">Distribucion por estado CP</div><div class="cs">Stacked por operario - top 15 por volumen</div><div class="cw" style="height:280px"><canvas id="ch-oper-stack"></canvas></div></div>
+        <div class="cc"><div class="ct">% Cumplimiento por operario</div><div class="cs">Solo operarios con 3 o mas operaciones</div><div class="cw" style="height:280px"><canvas id="ch-oper-pct"></canvas></div></div>
+      </div>
+      <div class="tw">
+        <div class="th">
+          <div><span class="ttl">Ranking Operarios</span> <span class="tct" id="oper-count"></span></div>
+          <div class="fr">
+            <input class="fi" id="oper-search" placeholder="Buscar operario..." oninput="filterOperarios()">
+            <select class="fs" id="oper-cont-f" onchange="applyOperContFilter()"><option value="">Todos los contratistas</option></select>
+            <select class="fs" id="oper-cp-f" onchange="filterOperarios()">
+              <option value="">Todos los estados</option>
+              <option value="err">Con sin-CP</option>
+              <option value="warn">Con desfase</option>
+              <option value="rc">Con RC sin CP</option>
+            </select>
+            <select class="fs" id="oper-sort-f" onchange="filterOperarios()">
+              <option value="total">Por volumen</option>
+              <option value="pct_asc">Peor cumplimiento</option>
+              <option value="pct_desc">Mejor cumplimiento</option>
+              <option value="sincp">Mas sin CP</option>
+            </select>
+          </div>
+        </div>
+        <div class="tscroll">
+          <table class="dt" id="oper-table">
+            <thead><tr>
+              <th>#</th><th>Operario</th><th>Total ops</th><th>CP OK</th><th>Fecha dif.</th><th>Sin CP</th><th>RC sin CP</th><th>% Cumplimiento</th><th>Valoracion</th><th>Contratistas</th>
+            </tr></thead>
+            <tbody id="oper-body"></tbody>
+          </table>
+        </div>
+        <div class="pg"><span id="oper-pg-info"></span><div class="pbs" id="oper-pg-btns"></div></div>
+      </div>
+      <div id="oper-detail" style="display:none;margin-top:14px">
+        <div class="ph" style="margin-bottom:10px">
+          <div><div class="ptitle" id="oper-det-name"></div><div class="psub" id="oper-det-sub"></div></div>
+          <button class="dl-btn" onclick="closeOperDetail()">x Cerrar detalle</button>
+        </div>
+        <div class="tw">
+          <div class="th"><span class="ttl">Operaciones de este operario</span> <span class="tct" id="oper-det-count"></span></div>
+          <div class="tscroll">
+            <table class="dt" id="oper-det-table">
+              <thead><tr><th>ID</th><th>OC-ERM</th><th>UM</th><th>R.C.</th><th>Tipo Operacion</th><th>Fecha Ejec.</th><th>Estado CP</th><th>Fecha CP</th><th>Tecnico CP</th><th>Zona</th></tr></thead>
+              <tbody id="oper-det-body"></tbody>
+            </table>
+          </div>
+          <div class="pg"><span id="oper-det-pg-info"></span><div class="pbs" id="oper-det-pg-btns"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLA COMPLETA -->
+    <div class="pane" id="p-tabla">
+      <div class="ph">
+        <div><div class="ptitle">Tabla Completa</div><div class="psub">Todas las operaciones con su estado de Control Previo</div></div>
+        <button class="dl-btn" onclick="exportPage(FILTERED,'tabla_completa_filtrado.xlsx')">&#11015; Exportar (filtrado)</button>
+      </div>
+      <div class="pf-bar" style="flex-wrap:wrap;row-gap:6px;margin-bottom:10px">
+        <span class="pf-label">Filtros:</span>
+        <div class="msel" id="tabla-pcp">
+          <div class="msel-btn" onclick="toggleMsel('tabla-pcp',event)"><span class="msel-lbl">Estado CP</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">&#9660;</span></div>
+          <div class="msel-drop"><div class="msel-list"></div><div class="msel-foot"><button class="msel-foot-a" onclick="mselAll('tabla-pcp')">Todos</button><span class="msel-foot-sep">|</span><button class="msel-foot-a" onclick="mselClear('tabla-pcp')">Limpiar</button></div></div>
+        </div>
+        <div class="msel" id="tabla-pcont">
+          <div class="msel-btn" onclick="toggleMsel('tabla-pcont',event)"><span class="msel-lbl">Contratista</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">&#9660;</span></div>
+          <div class="msel-drop"><div class="msel-srch"><input placeholder="Buscar..." oninput="mselSearch('tabla-pcont',this.value)"></div><div class="msel-list"></div><div class="msel-foot"><button class="msel-foot-a" onclick="mselAll('tabla-pcont')">Todos</button><span class="msel-foot-sep">|</span><button class="msel-foot-a" onclick="mselClear('tabla-pcont')">Limpiar</button></div></div>
+        </div>
+        <div class="msel" id="tabla-pzona">
+          <div class="msel-btn" onclick="toggleMsel('tabla-pzona',event)"><span class="msel-lbl">Zona</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">&#9660;</span></div>
+          <div class="msel-drop"><div class="msel-srch"><input placeholder="Buscar..." oninput="mselSearch('tabla-pzona',this.value)"></div><div class="msel-list"></div><div class="msel-foot"><button class="msel-foot-a" onclick="mselAll('tabla-pzona')">Todos</button><span class="msel-foot-sep">|</span><button class="msel-foot-a" onclick="mselClear('tabla-pzona')">Limpiar</button></div></div>
+        </div>
+        <div class="msel" id="tabla-pestado">
+          <div class="msel-btn" onclick="toggleMsel('tabla-pestado',event)"><span class="msel-lbl">Estado orden</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">&#9660;</span></div>
+          <div class="msel-drop"><div class="msel-srch"><input placeholder="Buscar..." oninput="mselSearch('tabla-pestado',this.value)"></div><div class="msel-list"></div><div class="msel-foot"><button class="msel-foot-a" onclick="mselAll('tabla-pestado')">Todos</button><span class="msel-foot-sep">|</span><button class="msel-foot-a" onclick="mselClear('tabla-pestado')">Limpiar</button></div></div>
+        </div>
+        <div class="msel" id="tabla-panio">
+          <div class="msel-btn" onclick="toggleMsel('tabla-panio',event)"><span class="msel-lbl">Año</span><span class="msel-badge" style="display:none"></span><span class="msel-arr">&#9660;</span></div>
+          <div class="msel-drop"><div class="msel-list"></div><div class="msel-foot"><button class="msel-foot-a" onclick="mselAll('tabla-panio')">Todos</button><span class="msel-foot-sep">|</span><button class="msel-foot-a" onclick="mselClear('tabla-panio')">Limpiar</button></div></div>
+        </div>
+        <select class="fs" id="tabla-rc-f" onchange="filterTabla()">
+          <option value="">R.C.: Todos</option>
+          <option value="si">R.C.: Sí</option>
+          <option value="no">R.C.: No</option>
+        </select>
+        <button class="pf-clear" onclick="clearAllFilters()">✕ Limpiar</button>
+      </div>
+      <div class="tw">
+        <div class="th">
+          <div><span class="ttl">Operaciones</span> <span class="tct" id="tabla-count"></span></div>
+          <div class="fr"><input class="fi" id="tabla-search" placeholder="Buscar ID, OC-ERM, operario..." oninput="filterTabla()" style="width:280px"></div>
+        </div>
+        <div class="tscroll">
+          <table class="dt" id="tabla-main">
+            <thead><tr>
+              <th onclick="sortTabla('ID')">ID</th>
+              <th onclick="sortTabla('OC-ERM')">OC-ERM</th>
+              <th>UM</th><th>R.C.</th>
+              <th onclick="sortTabla('Tipo Operacion')">Tipo Operación</th>
+              <th onclick="sortTabla('Fecha Ejecucion')">Fecha Ejec.</th>
+              <th onclick="sortTabla('anio')">Año</th>
+              <th>Estado CP</th><th>Fecha CP</th><th>Técnico CP</th>
+              <th>Contratista</th><th>Zona</th>
+              <th onclick="sortTabla('estado')">Estado Op.</th>
+            </tr></thead>
+            <tbody id="tabla-body"></tbody>
+          </table>
+        </div>
+        <div class="pg"><span id="tabla-pg-info"></span><div class="pbs" id="tabla-pg-btns"></div></div>
+      </div>
+    </div>
+
+  </div><!-- /cnt -->
+</div><!-- /app -->
+
+<!-- LOADER -->
+<div id="ld"><div class="sp"></div><div id="lm">Procesando datos...</div></div>
+
+<script>
+
+/* ─────────────────────────────────────────────
+   PERSISTENT STORAGE — save/restore sessions
+───────────────────────────────────────────── */
+async function saveSession(f1name, f2name){
+  try {
+    const compact = ROWS.map(r=>({
+      i:r._id, o:r._ocErm, u:r._um, rc:r._rc,
+      fe:r._fechaEjec, pe:r._parsedEjec?r._parsedEjec.getTime():null,
+      t:r._tipoOp, c:r._cont, z:r._zona, e:r._estado,
+      op:r._operario, an:r._anio,
+      cs:r._cpStatus, cf:r._cpFechaStr,
+      cp:r._cpFecha?r._cpFecha.getTime():null,
+      ct:r._cpTecnico, cd:r._cpDelta
+    }));
+    const meta = {date: new Date().toLocaleString('es-ES'), f1:f1name, f2:f2name, n:ROWS.length};
+    if(typeof window.storage === 'undefined') return;
+    await window.storage.set('cp_rows', JSON.stringify(compact));
+    await window.storage.set('cp_meta', JSON.stringify(meta));
+  } catch(e){ /* storage not available — silent */ }
+}
+
+/* ═══════════════════════════════════════════════════
+   SUPABASE CONFIG
+   ─────────────────────────────────────────────────
+   INSTRUCCIONES DE CONFIGURACIÓN:
+   1. Crea un proyecto en supabase.com
+   2. Ve a Storage → New bucket → nombre: "cp-files" → private
+   3. Ve a Authentication → URL Configuration → añade tu URL de GitHub Pages
+   4. En Authentication → Users → Invite User → crea los usuarios
+   5. Copia tu URL y anon key desde Settings → API y ponlos abajo
+   6. Pon el email del administrador (quien puede subir ficheros) en ADMIN_EMAILS
+═══════════════════════════════════════════════════*/
+const SUPABASE_URL  = 'https://ubobssgcdlczkbqmljrj.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_iXJtYBDB-SKI53jaUii6mw_1a-tbhac';
+const BUCKET        = 'cp-files';
+const FILE1_KEY     = 'detalle_cp.xlsx';
+const FILE2_KEY     = 'desglosado.xlsx';
+const ADMIN_EMAILS  = ['fmedina@nedgia.es', 'allopezs@naturgy.com'];
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+let currentUser = null;
+
+/* ─────────────────────────────────────────────
+   AUTH FUNCTIONS
+───────────────────────────────────────────── */
+async function doLogin(){
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-pass').value;
+  const errEl = document.getElementById('auth-err');
+  const btn   = document.getElementById('auth-btn');
+  const spin  = document.getElementById('auth-spinner');
+
+  if(!email || !pass){ errEl.textContent='Introduce email y contraseña.'; return; }
+  errEl.textContent='';
+  btn.disabled=true; btn.style.display='none'; spin.classList.add('on');
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+
+  if(error){
+    errEl.textContent = error.message === 'Invalid login credentials'
+      ? 'Email o contraseña incorrectos.' : error.message;
+    btn.disabled=false; btn.style.display=''; spin.classList.remove('on');
+    return;
+  }
+  currentUser = data.user;
+  onLoginSuccess();
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  currentUser = null;
+  document.getElementById('auth-screen').classList.remove('hidden');
+  document.getElementById('auth-email').value='';
+  document.getElementById('auth-pass').value='';
+  document.getElementById('auth-err').textContent='';
+  document.getElementById('auth-btn').disabled=false;
+  document.getElementById('auth-btn').style.display='';
+  document.getElementById('auth-spinner').classList.remove('on');
+  document.getElementById('btn-logout').style.display='none';
+  document.getElementById('hd-user').style.display='none';
+  resetTool();
+}
+
+function isAdmin(user){
+  return ADMIN_EMAILS.includes((user?.email||'').toLowerCase());
+}
+
+async function onLoginSuccess(){
+  document.getElementById('auth-screen').classList.add('hidden');
+  const email = currentUser.email;
+  document.getElementById('hd-user').textContent = email;
+  document.getElementById('hd-user').style.display='';
+  document.getElementById('btn-logout').style.display='';
+
+  if(isAdmin(currentUser)){
+    document.getElementById('admin-upload-panel').style.display='';
+    document.getElementById('user-load-panel').style.display='none';
+    await loadCurrentUploadMeta();
+  } else {
+    document.getElementById('admin-upload-panel').style.display='none';
+    document.getElementById('user-load-panel').style.display='';
+    await autoLoadFromStorage();
+  }
+}
+
+/* ─────────────────────────────────────────────
+   STORAGE: UPLOAD (ADMIN)
+───────────────────────────────────────────── */
+async function uploadAndProcess(){
+  if(!file1||!file2) return;
+  const progBar  = document.getElementById('upload-progress');
+  const pbar     = document.getElementById('upload-pbar');
+  const ptext    = document.getElementById('upload-ptext');
+  const btn      = document.getElementById('btn-proc');
+
+  btn.disabled=true; progBar.style.display='';
+
+  try {
+    // Delete old files first
+    ptext.textContent='Eliminando ficheros anteriores...'; pbar.style.width='10%';
+    await sb.storage.from(BUCKET).remove([FILE1_KEY, FILE2_KEY]);
+
+    // Upload file 1
+    ptext.textContent='Subiendo Detalle CP...'; pbar.style.width='35%';
+    const { error: e1 } = await sb.storage.from(BUCKET).upload(FILE1_KEY, file1, {
+      upsert: true, contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+    if(e1) throw new Error('Error subiendo fichero 1: '+e1.message);
+
+    // Upload file 2
+    ptext.textContent='Subiendo Informe Desglosado...'; pbar.style.width='65%';
+    const { error: e2 } = await sb.storage.from(BUCKET).upload(FILE2_KEY, file2, {
+      upsert: true, contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+    if(e2) throw new Error('Error subiendo fichero 2: '+e2.message);
+
+    ptext.textContent='Procesando datos...'; pbar.style.width='85%';
+
+    // Process locally (same as before)
+    processFilesFromObjects(file1, file2, ()=>{
+      pbar.style.width='100%';
+      ptext.textContent='¡Completado! Los datos están disponibles para todos los usuarios.';
+      setTimeout(()=>{ progBar.style.display='none'; btn.disabled=false; }, 2500);
+      loadCurrentUploadMeta();
+    });
+
+  } catch(err) {
+    progBar.style.display='none';
+    btn.disabled=false;
+    alert('Error al subir: '+err.message);
+    console.error(err);
+  }
+}
+
+async function loadCurrentUploadMeta(){
+  // Get list of files in bucket to show metadata
+  const { data } = await sb.storage.from(BUCKET).list();
+  if(!data || data.length === 0) return;
+  const f1 = data.find(f=>f.name===FILE1_KEY);
+  const f2 = data.find(f=>f.name===FILE2_KEY);
+  if(!f1 && !f2) return;
+  const date = f1 ? new Date(f1.updated_at||f1.created_at).toLocaleString('es-ES') : '—';
+  const meta = document.getElementById('current-upload-meta');
+  meta.innerHTML = `📂 Ficheros activos en Supabase:<br><strong>${FILE1_KEY}</strong> · <strong>${FILE2_KEY}</strong><br>Última subida: <strong>${date}</strong>`;
+  meta.style.display='';
+}
+
+/* ─────────────────────────────────────────────
+   STORAGE: AUTO-LOAD (REGULAR USERS)
+───────────────────────────────────────────── */
+async function autoLoadFromStorage(){
+  const spinner = document.getElementById('cloud-spinner');
+  const status  = document.getElementById('cloud-status');
+  const sub     = document.getElementById('cloud-sub');
+  const noFiles = document.getElementById('no-files-banner');
+
+  spinner.style.display=''; status.textContent='Verificando datos disponibles...'; sub.textContent='Conectando con Supabase';
+
+  // Check if files exist
+  const { data: list } = await sb.storage.from(BUCKET).list();
+  const hasF1 = list?.find(f=>f.name===FILE1_KEY);
+  const hasF2 = list?.find(f=>f.name===FILE2_KEY);
+
+  if(!hasF1 || !hasF2){
+    spinner.style.display='none';
+    status.textContent='Sin datos disponibles';
+    noFiles.style.display='';
+    return;
+  }
+
+  // Show metadata
+  const date = new Date(hasF1.updated_at||hasF1.created_at).toLocaleString('es-ES');
+  const cloudMeta = document.getElementById('cloud-meta');
+  cloudMeta.innerHTML = `📂 Datos activos:<br><strong>${FILE1_KEY}</strong> · <strong>${FILE2_KEY}</strong><br>Cargados el: <strong>${date}</strong>`;
+  cloudMeta.style.display='';
+
+  // Download file 1
+  status.textContent='Descargando Detalle CP...'; sub.textContent='Fichero 1 de 2';
+  const { data: blob1, error: err1 } = await sb.storage.from(BUCKET).download(FILE1_KEY);
+  if(err1){ status.textContent='Error descargando fichero 1'; sub.textContent=err1.message; return; }
+  const f1 = new File([blob1], FILE1_KEY);
+
+  // Download file 2
+  status.textContent='Descargando Informe Desglosado...'; sub.textContent='Fichero 2 de 2';
+  const { data: blob2, error: err2 } = await sb.storage.from(BUCKET).download(FILE2_KEY);
+  if(err2){ status.textContent='Error descargando fichero 2'; sub.textContent=err2.message; return; }
+  const f2 = new File([blob2], FILE2_KEY);
+
+  // Process
+  status.textContent='Procesando y cruzando datos...'; sub.textContent='Aplicando reglas OC-ERM+UM';
+  setTimeout(()=>{
+    processFilesFromObjects(f1, f2, ()=>{
+      spinner.style.display='none';
+      status.textContent='¡Datos cargados correctamente!';
+    });
+  }, 80);
+}
+
+/* ─────────────────────────────────────────────
+   PROCESS FROM FILE OBJECTS (shared by admin + user)
+───────────────────────────────────────────── */
+function processFilesFromObjects(f1obj, f2obj, onDone){
+  readExcel(f1obj, data1=>{
+    readExcel(f2obj, data2=>{
+      setTimeout(()=>{
+        try {
+          const result = crossData(data1, data2);
+          ROWS = result;
+          buildDashboard();
+          unlockNav();
+          hideLoader();
+          nav(document.querySelector('.ni[data-p="p-res"]'));
+          if(onDone) onDone();
+        } catch(err){
+          hideLoader();
+          alert('Error procesando datos: '+err.message);
+          console.error(err);
+        }
+      }, 50);
+    });
+  });
+}
+
+/* ─────────────────────────────────────────────
+   CHECK EXISTING SESSION ON LOAD
+───────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', async ()=>{
+  const { data: { session } } = await sb.auth.getSession();
+  if(session){
+    currentUser = session.user;
+    onLoginSuccess();
+  }
+});
+
+/* ─────────────────────────────────────────────
+   GLOBALS
+───────────────────────────────────────────── */
+let file1 = null, file2 = null;
+let ROWS = [];       // processed rows
+let FILTERED = [];   // current filtered set
+let RC_ROWS = [];
+let SINCP_ROWS = [];
+let CHARTS = {};
+
+const PAGE_SIZE = 50;
+let tablaPage = 0, tablaFilter = 'all', tablaSort = {col:'ID', asc:true};
+let rcPage = 0, sincpPage = 0;
+let rcFiltered = [], sincpFiltered = [];
+
+/* ─────────────────────────────────────────────
+   NAVIGATION
+───────────────────────────────────────────── */
+function nav(el){
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  // Force all panes hidden, then show only the target
+  document.querySelectorAll('.pane').forEach(p=>{
+    p.classList.remove('on');
+    p.style.display='';  // reset any inline display overrides
+  });
+  el.classList.add('on');
+  const target = document.getElementById(el.dataset.p);
+  if(target) target.classList.add('on');
+}
+
+/* ─────────────────────────────────────────────
+   DRAG / DROP / FILE HANDLING
+───────────────────────────────────────────── */
+function dzOver(e,id){e.preventDefault();document.getElementById(id).classList.add('over');}
+function dzLeave(id){document.getElementById(id).classList.remove('over');}
+function dzDrop(e,n){e.preventDefault();dzLeave('dz'+n);const f=e.dataTransfer.files[0];if(f)setFile(n,f);}
+function fileChosen(n,inp){if(inp.files[0])setFile(n,inp.files[0]);}
+function setFile(n,f){
+  if(n===1)file1=f; else file2=f;
+  const dz=document.getElementById('dz'+n);
+  dz.classList.add('done'); dz.classList.remove('over');
+  document.getElementById('dz'+n+'-name').textContent='✓ '+f.name;
+  if(file1&&file2)document.getElementById('btn-proc').disabled=false;
+}
+
+/* ─────────────────────────────────────────────
+   PROCESS FILES
+───────────────────────────────────────────── */
+function processFiles(){
+  if(!file1||!file2) return;
+  showLoader('Leyendo ficheros...');
+  processFilesFromObjects(file1, file2, ()=>{ hideLoader(); });
+}
+
+function readExcel(file, cb){
+  const reader = new FileReader();
+  reader.onload = e => {
+    const wb = XLSX.read(e.target.result, {type:'binary'});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+    cb(data);
+  };
+  reader.readAsBinaryString(file);
+}
+
+/* ─────────────────────────────────────────────
+   CROSS DATA ENGINE
+───────────────────────────────────────────── */
+function crossData(detalleData, desglosadoData){
+  // ── 1. Parse headers
+  const h1 = detalleData[0].map(c=>String(c).trim());   // Detalle (CP records)
+  const h2 = desglosadoData[0].map(c=>String(c).trim()); // Desglosado (all ops)
+
+  const rows1 = detalleData.slice(1).filter(r=>r.some(c=>c!==''));
+  const rows2 = desglosadoData.slice(1).filter(r=>r.some(c=>c!==''));
+
+  // ── 2. Find column indices (flexible matching)
+  const fi=(h,keys)=>{for(const k of keys){const i=h.findIndex(c=>c.toLowerCase().includes(k.toLowerCase()));if(i>=0)return i;}return -1;};
+  // Exact-match finder (prevents "Id Operario" matching "Operario")
+  const fiExact=(h,keys)=>{for(const k of keys){const i=h.findIndex(c=>c.trim().toLowerCase()===k.toLowerCase());if(i>=0)return i;}return fi(h,keys);};
+
+  const opNumIdx = fi(h1,['OPARECION_NUM','OPERACION_NUM','NUM']);
+  const fechaIdx = fi(h1,['FECHA']);
+  const jefeIdx  = fi(h1,['JEFE_TRABAJOS','JEFE TRABAJOS','TECNICO','JEFE']);
+  const ayIdx    = fi(h1,['AYUDANTE']);
+
+  const idIdx    = fi(h2,['ID']);
+  const ocErmIdx = fi(h2,['OC-ERM','OC ERM','OCERM']);
+  const umIdx    = fi(h2,['UM']);
+  const rcIdx    = fi(h2,['R.C.','RC','RECINTO']);
+  const fechaEjecIdx = fi(h2,['Fecha Ejecucion','FECHA EJECUCION','FECHA_EJECUCION']);
+  const tipoIdx  = fi(h2,['Tipo Operacion','TIPO OPERACION','TIPO_OPERACION']);
+  const contIdx  = fi(h2,['Contratista','CONTRATISTA']);
+  const zonaIdx  = fi(h2,['Zona','ZONA']);
+  const estadoIdx= fi(h2,['Estado','ESTADO']);
+  const operarioIdx = fiExact(h2,['Operario','OPERARIO','operario']);
+  const denominIdx  = fi(h2,['Denominacion','DENOMINACION']);
+  const sociedadIdx = fi(h2,['Sociedad','SOCIEDAD']);
+  const deptIdx     = fi(h2,['Departamento','DEPARTAMENTO']);
+
+  if(opNumIdx<0) throw new Error('No se encontró la columna OPARECION_NUM en el fichero 1 (Detalle CP). Columnas encontradas: '+h1.join(', '));
+  if(idIdx<0) throw new Error('No se encontró la columna ID en el fichero 2 (Desglosado). Columnas encontradas: '+h2.join(', '));
+
+  // ── 3. Build CP map: OPARECION_NUM → {fecha, tecnico, rawFecha}
+  const cpMap = {};
+  for(const row of rows1){
+    const key = String(row[opNumIdx]).trim();
+    if(!key || key==='') continue;
+    if(!cpMap[key]){
+      const rawFecha = row[fechaIdx];
+      const parsedFecha = parseDetalleDate(rawFecha);
+      const tecnico = jefeIdx>=0 ? String(row[jefeIdx]).trim() : '';
+      cpMap[key] = {rawFecha, parsedFecha, tecnico, key};
+    }
+  }
+
+  // ── 4. First pass: find which desglosado IDs have CP
+  const idToCpInfo = {};
+  for(const row of rows2){
+    const id = String(row[idIdx]).trim();
+    if(cpMap[id]) idToCpInfo[id] = cpMap[id];
+  }
+
+  // ── 5. Build OC-ERM+UM dedup map
+  // If ANY id in an OC-ERM+UM group has CP → whole group gets CP
+  const ocUmToCP = {};
+  for(const row of rows2){
+    const id    = String(row[idIdx]).trim();
+    const ocErm = String(row[ocErmIdx>=0?ocErmIdx:0]).trim();
+    const um    = String(row[umIdx>=0?umIdx:0]).trim();
+    const key   = ocErm+'|||'+um;
+    if(idToCpInfo[id] && !ocUmToCP[key]){
+      ocUmToCP[key] = idToCpInfo[id];
+    }
+  }
+
+  // ── 6. Second pass: classify each row
+  const result = [];
+  for(const row of rows2){
+    const id    = String(row[idIdx]).trim();
+    const ocErm = String(row[ocErmIdx>=0?ocErmIdx:0]).trim();
+    const um    = String(row[umIdx>=0?umIdx:0]).trim();
+    const groupKey = ocErm+'|||'+um;
+
+    // Direct match first, then group match
+    const cpInfo = idToCpInfo[id] || ocUmToCP[groupKey] || null;
+
+    const fechaEjec = row[fechaEjecIdx>=0?fechaEjecIdx:0];
+    const parsedEjec = parseDesglosadoDate(fechaEjec);
+
+    let cpStatus, cpDelta = null;
+    if(cpInfo){
+      if(parsedEjec && cpInfo.parsedFecha){
+        const diff = dateDiffDays(cpInfo.parsedFecha, parsedEjec);
+        cpDelta = diff;
+        if(diff === 0)      cpStatus = 'ok';
+        else if(diff < 0)   cpStatus = 'warn';  // CP before execution
+        else                cpStatus = 'warn';  // CP after (also wrong)
+      } else {
+        cpStatus = 'ok'; // date not parseable, assume ok if match exists
+      }
+    } else {
+      cpStatus = 'err';
+    }
+
+    const rcVal = rcIdx>=0 ? row[rcIdx] : false;
+    const isRC = (rcVal===true || rcVal===1 || String(rcVal).toLowerCase()==='true');
+
+    result.push({
+      _id:       id,
+      _ocErm:    ocErm,
+      _um:       um,
+      _rc:       isRC,
+      _fechaEjec: fechaEjec,
+      _parsedEjec: parsedEjec,
+      _tipoOp:   tipoIdx>=0?String(row[tipoIdx]):'',
+      _cont:     contIdx>=0?String(row[contIdx]):'',
+      _zona:     zonaIdx>=0?String(row[zonaIdx]):'',
+      _estado:   estadoIdx>=0?String(row[estadoIdx]):'',
+      _operario: operarioIdx>=0?String(row[operarioIdx]):'',
+      _denom:    denominIdx>=0?String(row[denominIdx]):'',
+      _soc:      sociedadIdx>=0?String(row[sociedadIdx]):'',
+      _dept:     deptIdx>=0?String(row[deptIdx]):'',
+      // CP fields
+      _cpStatus:   cpStatus,
+      _cpFechaRaw: cpInfo?cpInfo.rawFecha:'',
+      _cpFecha:    cpInfo?cpInfo.parsedFecha:null,
+      _cpFechaStr: cpInfo?formatDateOut(cpInfo.parsedFecha):'—',
+      _cpTecnico:  cpInfo?cpInfo.tecnico:'—',
+      _cpDelta:    cpDelta,
+      _anio: parsedEjec ? String(parsedEjec.getFullYear()) : '',
+      _cpDirect:   !!idToCpInfo[id], // true if this specific ID had CP
+      // original row reference
+      _rawRow: row,
+      _h2: h2
+    });
+  }
+
+  return result;
+}
+
+/* ─────────────────────────────────────────────
+   DATE HELPERS
+───────────────────────────────────────────── */
+function parseDetalleDate(v){
+  // format: 20260304 (YYYYMMDD as number or string)
+  if(!v && v!==0) return null;
+  const s = String(v).replace(/\D/g,'');
+  if(s.length>=8){
+    const y=parseInt(s.substring(0,4)),m=parseInt(s.substring(4,6))-1,d=parseInt(s.substring(6,8));
+    const dt=new Date(y,m,d);
+    return isNaN(dt.getTime())?null:dt;
+  }
+  // Try as Excel serial number
+  if(!isNaN(v)&&Number(v)>40000){
+    return excelSerial(Number(v));
+  }
+  return null;
+}
+
+function parseDesglosadoDate(v){
+  if(!v) return null;
+  const s=String(v).trim();
+  // DD/MM/YYYY
+  const m1=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(m1) return new Date(parseInt(m1[3]),parseInt(m1[2])-1,parseInt(m1[1]));
+  // YYYYMMDD
+  const m2=s.match(/^(\d{4})(\d{2})(\d{2})$/);
+  if(m2) return new Date(parseInt(m2[1]),parseInt(m2[2])-1,parseInt(m2[3]));
+  // ISO
+  const d=new Date(s);
+  return isNaN(d.getTime())?null:d;
+}
+
+function excelSerial(n){
+  return new Date(Math.round((n-25569)*86400*1000));
+}
+
+function dateDiffDays(a,b){
+  if(!a||!b) return null;
+  return Math.round((b-a)/(86400*1000));
+}
+
+function formatDateOut(d){
+  if(!d) return '—';
+  const dd=String(d.getDate()).padStart(2,'0');
+  const mm=String(d.getMonth()+1).padStart(2,'0');
+  return dd+'/'+mm+'/'+d.getFullYear();
+}
+
+function dateToMonth(d){
+  if(!d) return 'Sin fecha';
+  return ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][d.getMonth()]+' '+d.getFullYear();
+}
+
+/* ─────────────────────────────────────────────
+   BUILD DASHBOARD
+───────────────────────────────────────────── */
+function buildDashboard(){
+  const total = ROWS.length;
+  const cpOk   = ROWS.filter(r=>r._cpStatus==='ok').length;
+  const cpWarn = ROWS.filter(r=>r._cpStatus==='warn').length;
+  const cpErr  = ROWS.filter(r=>r._cpStatus==='err').length;
+  const rcTotal= ROWS.filter(r=>r._rc).length;
+  const rcSinCP= ROWS.filter(r=>r._rc && r._cpStatus==='err').length;
+
+  // KPIs
+  document.getElementById('kpi-row').innerHTML = `
+    <div class="kpi k-gray"><div class="kv">${total.toLocaleString('es')}</div><div class="kl">Total operaciones</div><div class="ks">Desglosado completo</div></div>
+    <div class="kpi k-green"><div class="kv">${cpOk.toLocaleString('es')}</div><div class="kl">✅ CP Correcto</div><div class="ks"><em>${pct(cpOk,total)}%</em> fechas coinciden</div></div>
+    <div class="kpi k-amber"><div class="kv">${cpWarn.toLocaleString('es')}</div><div class="kl">⚠️ Fecha diferente</div><div class="ks"><em>${pct(cpWarn,total)}%</em> CP con desfase</div></div>
+    <div class="kpi k-red"><div class="kv">${cpErr.toLocaleString('es')}</div><div class="kl">❌ Sin CP</div><div class="ks"><em>${pct(cpErr,total)}%</em> sin registro</div></div>
+    <div class="kpi k-purple"><div class="kv">${rcSinCP}</div><div class="kl">⚠️ RC Sin CP</div><div class="ks">de <em>${rcTotal}</em> R.C. totales</div></div>
+  `;
+
+  // Subtitle
+  const today = new Date().toLocaleDateString('es-ES');
+  document.getElementById('res-sub').textContent = `Análisis generado el ${today} · ${total} operaciones cruzadas`;
+
+  // Header pills
+  document.getElementById('hd-ops').textContent = total+' ops';
+  document.getElementById('hd-ops').style.display='';
+  document.getElementById('hd-date').textContent = today;
+  document.getElementById('hd-date').style.display='';
+  document.getElementById('btn-reset').style.display='';
+
+  // Info box
+  if(cpWarn>0){
+    document.getElementById('res-info').style.display='';
+    document.getElementById('res-info').innerHTML=`<strong>ℹ️ Nota sobre "Fecha diferente":</strong> Se han detectado <strong>${cpWarn}</strong> operaciones donde existe registro de CP pero la fecha no coincide con la fecha de ejecución. Esto puede indicar que el CP se realizó en una jornada diferente a la ejecución. La fecha perfecta es la misma que la de ejecución.`;
+  }
+
+  // Sidebar counters
+  document.getElementById('ct-total').textContent = total;
+  document.getElementById('ct-tec').textContent = uniqueTecnicos().length;
+  document.getElementById('ct-rc').textContent = rcTotal;
+  document.getElementById('ct-sincp').textContent = cpErr;
+  document.getElementById('ct-tabla').textContent = total;
+
+  // Build derived datasets
+  RC_ROWS    = ROWS.filter(r=>r._rc);
+  SINCP_ROWS = ROWS.filter(r=>r._cpStatus==='err');
+  rcFiltered = [...RC_ROWS];
+  sincpFiltered = [...SINCP_ROWS];
+  FILTERED = [...ROWS];
+
+  // Charts resumen
+  buildDonut(cpOk, cpWarn, cpErr);
+  buildMonthChart();
+  buildTipoOpChart();
+  buildContChart();
+
+  // Charts contratistas (p-tec page)
+  buildContPage();
+
+  // Populate per-page filter bars (new msel version)
+  populatePageBars();
+  populateFilters();
+
+  // RC page
+  buildRCKpis(rcTotal, cpOk, cpWarn, rcSinCP);
+  buildRCPieFromData(RC_ROWS);
+  buildRCTipoChartFromData(RC_ROWS);
+  renderRCTable();
+
+  // Sin CP page
+  buildSinCPChartsFromData(SINCP_ROWS);
+  renderSinCPTable();
+
+  // Tabla completa
+  renderTabla();
+
+  // Operarios
+  buildOperStats();
+  buildOperKpis();
+  buildOperCharts();
+  filterOperarios();
+
+  // Sidebar info
+  document.getElementById('sb-info').innerHTML=`${total} ops procesadas<br>${cpOk} CP correctos<br>${cpErr} sin CP`;
+}
+
+/* ─────────────────────────────────────────────
+   CHART BUILDERS
+───────────────────────────────────────────── */
+const C = {
+  ok:    '#059669',
+  warn:  '#d97706',
+  err:   '#dc2626',
+  navy:  '#1a2f5e',
+  blue:  '#2563eb',
+  purple:'#7c3aed',
+  muted: '#8295aa',
+  acc:   '#f0a500'
+};
+
+function mkChart(id, type, data, opts={}){
+  const el = document.getElementById(id);
+  if(!el) return;
+  if(CHARTS[id]) CHARTS[id].destroy();
+  CHARTS[id] = new Chart(el, {type, data, options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false}, tooltip:{callbacks:{}}},
+    ...opts
+  }});
+}
+
+function buildDonut(ok, warn, err, suffix=""){
+  mkChart('ch-donut'+suffix,'doughnut',{
+    labels:['CP Correcto','Fecha diferente','Sin CP'],
+    datasets:[{data:[ok,warn,err],backgroundColor:[C.ok,C.warn,C.err],borderWidth:2,borderColor:'#fff'}]
+  },{
+    plugins:{legend:{display:true,position:'bottom',labels:{font:{size:11},color:'#4a5e7e',boxWidth:12}}},
+    cutout:'65%'
+  });
+}
+
+function buildMonthChart(rows=ROWS){
+  const months = {};
+  for(const r of rows){
+    const m = dateToMonth(r._parsedEjec) || 'Sin fecha';
+    if(!months[m]) months[m]={ok:0,warn:0,err:0};
+    months[m][r._cpStatus]++;
+  }
+  // Sort months chronologically
+  const sorted = Object.entries(months).sort((a,b)=>{
+    const parse=s=>{const [mn,y]=s.split(' ');const ms={'Ene':0,'Feb':1,'Mar':2,'Abr':3,'May':4,'Jun':5,'Jul':6,'Ago':7,'Sep':8,'Oct':9,'Nov':10,'Dic':11};return y?parseInt(y)*12+(ms[mn]||0):9999;};
+    return parse(a[0])-parse(b[0]);
+  });
+  const labels=sorted.map(e=>e[0]);
+  const okD=sorted.map(e=>e[1].ok);
+  const wD=sorted.map(e=>e[1].warn);
+  const eD=sorted.map(e=>e[1].err);
+  mkChart('ch-month','bar',{
+    labels,
+    datasets:[
+      {label:'CP OK',data:okD,backgroundColor:C.ok+'cc',stack:'s'},
+      {label:'Fecha dif.',data:wD,backgroundColor:C.warn+'cc',stack:'s'},
+      {label:'Sin CP',data:eD,backgroundColor:C.err+'cc',stack:'s'}
+    ]
+  },{
+    scales:{x:{stacked:true,ticks:{font:{size:10}}},y:{stacked:true,ticks:{font:{size:10}}}},
+    plugins:{legend:{display:true,position:'bottom',labels:{font:{size:10},boxWidth:10}}}
+  });
+}
+
+function buildTipoOpChart(rows=ROWS){
+  const tMap={};
+  for(const r of rows){
+    const t=r._tipoOp||'Sin tipo';
+    if(!tMap[t]) tMap[t]={ok:0,warn:0,err:0};
+    tMap[t][r._cpStatus]++;
+  }
+  const sorted=Object.entries(tMap).sort((a,b)=>(b[1].ok+b[1].warn+b[1].err)-(a[1].ok+a[1].warn+a[1].err));
+  const wrap=document.getElementById('ch-tipo-op-wrap');
+  if(wrap) wrap.style.height=Math.max(220,sorted.length*28+60)+'px';
+  mkChart('ch-tipo-op','bar',{
+    labels:sorted.map(e=>e[0]),
+    datasets:[
+      {label:'CP OK',data:sorted.map(e=>e[1].ok),backgroundColor:C.ok+'cc',stack:'s'},
+      {label:'Fecha dif.',data:sorted.map(e=>e[1].warn),backgroundColor:C.warn+'cc',stack:'s'},
+      {label:'Sin CP',data:sorted.map(e=>e[1].err),backgroundColor:C.err+'cc',stack:'s'}
+    ]
+  },{
+    indexAxis:'y',
+    scales:{x:{stacked:true,ticks:{font:{size:9}}},y:{stacked:true,ticks:{font:{size:9}}}},
+    plugins:{legend:{display:true,position:'bottom',labels:{font:{size:10},boxWidth:10}}}
+  });
+}
+
+function buildContChart(rows=ROWS){
+  const cMap={};
+  for(const r of rows){
+    const c=r._cont||'Sin info';
+    if(!cMap[c]) cMap[c]={ok:0,warn:0,err:0};
+    cMap[c][r._cpStatus]++;
+  }
+  const sorted=Object.entries(cMap).sort((a,b)=>(b[1].ok+b[1].warn+b[1].err)-(a[1].ok+a[1].warn+a[1].err)).slice(0,8);
+  const labels=sorted.map(e=>e[0]);
+  mkChart('ch-cont','bar',{
+    labels,
+    datasets:[
+      {label:'CP OK',data:sorted.map(e=>e[1].ok),backgroundColor:C.ok+'cc',stack:'s'},
+      {label:'Fecha dif.',data:sorted.map(e=>e[1].warn),backgroundColor:C.warn+'cc',stack:'s'},
+      {label:'Sin CP',data:sorted.map(e=>e[1].err),backgroundColor:C.err+'cc',stack:'s'}
+    ]
+  },{
+    scales:{x:{stacked:true,ticks:{font:{size:9}}},y:{stacked:true,ticks:{font:{size:9}}}},
+    plugins:{legend:{display:true,position:'bottom',labels:{font:{size:10},boxWidth:10}}}
+  });
+}
+
+/* ──────────────────────────────────────────────
+   CONTRATISTAS PAGE
+──────────────────────────────────────────────*/
+let CONT_STATS = [];
+let contPage = 0;
+let contDetPage = 0;
+let contDetRows = [];
+
+function buildContPage(){
+  // Build stats
+  const map={};
+  for(const r of ROWS){
+    const c=r._cont||'Sin contratista';
+    if(!map[c]) map[c]={name:c,total:0,ok:0,warn:0,err:0,rcErr:0,rows:[]};
+    map[c].total++;
+    map[c][r._cpStatus]++;
+    if(r._rc && r._cpStatus==='err') map[c].rcErr++;
+    map[c].rows.push(r);
+  }
+  CONT_STATS=Object.values(map).sort((a,b)=>b.total-a.total);
+
+  // KPIs
+  const total=CONT_STATS.length;
+  const buenos=CONT_STATS.filter(c=>c.total>=5&&Math.round((c.ok+c.warn)/c.total*100)>=80).length;
+  const malos =CONT_STATS.filter(c=>c.total>=5&&Math.round((c.ok+c.warn)/c.total*100)<50).length;
+  const conRcProb=CONT_STATS.filter(c=>c.rcErr>0).length;
+  document.getElementById('kpi-cont').innerHTML=`
+    <div class="kpi k-navy"><div class="kv">${total}</div><div class="kl">Contratistas</div><div class="ks">Empresas en el periodo</div></div>
+    <div class="kpi k-green"><div class="kv">${buenos}</div><div class="kl">Buen cumplimiento</div><div class="ks"><em>&ge;80%</em> de CP correctos</div></div>
+    <div class="kpi k-red"><div class="kv">${malos}</div><div class="kl">Bajo cumplimiento</div><div class="ks"><em>&lt;50%</em> de CP correctos</div></div>
+    <div class="kpi k-amber"><div class="kv">${conRcProb}</div><div class="kl">Con RC sin CP</div><div class="ks">Tienen R.C. sin cobertura</div></div>
+  `;
+  document.getElementById('ct-tec').textContent=total;
+
+  // ── CHART 1: vertical 100% stacked — contratista en X, % en Y
+  const sorted=[...CONT_STATS].sort((a,b)=>b.total-a.total).slice(0,10);
+  const pct100=sorted.map(c=>({
+    ok:   c.total?+(c.ok  /c.total*100).toFixed(1):0,
+    warn: c.total?+(c.warn/c.total*100).toFixed(1):0,
+    err:  c.total?+(c.err /c.total*100).toFixed(1):0,
+    total:c.total, ok_n:c.ok, warn_n:c.warn, err_n:c.err
+  }));
+  // ch-cont-stack replaced by ch-cont-scatter (see buildContScatter)
+
+  // ── CHART 2: % CP OK ordenado de mejor a peor
+  const pctSorted=[...CONT_STATS].filter(c=>c.total>=3)
+    .map(c=>({
+      name:c.name,total:c.total,
+      okPct:  +(c.ok/c.total*100).toFixed(1),
+      warnPct:+(c.warn/c.total*100).toFixed(1),
+      errPct: +(c.err/c.total*100).toFixed(1)
+    }))
+    .sort((a,b)=>b.okPct-a.okPct);
+  mkChart('ch-cont-pct','bar',{
+    labels:pctSorted.map(c=>c.name),
+    datasets:[
+      {label:'% CP OK',    data:pctSorted.map(c=>c.okPct),  backgroundColor:C.ok+'cc',  stack:'s'},
+      {label:'% Fecha dif.',data:pctSorted.map(c=>c.warnPct),backgroundColor:C.warn+'cc',stack:'s'},
+      {label:'% Sin CP',   data:pctSorted.map(c=>c.errPct), backgroundColor:C.err+'cc', stack:'s'}
+    ]
+  },{
+    indexAxis:'y',
+    scales:{
+      x:{stacked:true,min:0,max:100,ticks:{font:{size:9},callback:v=>v+'%'}},
+      y:{stacked:true,ticks:{font:{size:9}}}
+    },
+    plugins:{
+      legend:{display:true,position:'bottom',labels:{font:{size:10},boxWidth:10}},
+      tooltip:{callbacks:{label:ctx=>{
+        const c=pctSorted[ctx.dataIndex];
+        return ` ${ctx.dataset.label}: ${ctx.raw}%  (n=${c.total})`;
+      }}}
+    }
+  });
+
+  // ── CHART 3: Trend mensual en % (% CP OK y % Sin CP por mes)
+  const months={};
+  for(const r of ROWS){
+    const m=dateToMonth(r._parsedEjec)||'Sin fecha';
+    if(!months[m]) months[m]={ok:0,warn:0,err:0};
+    months[m][r._cpStatus]++;
+  }
+  const mSorted=Object.entries(months).sort((a,b)=>{
+    const p=s=>{const[mn,y]=s.split(' ');const ms={'Ene':0,'Feb':1,'Mar':2,'Abr':3,'May':4,'Jun':5,'Jul':6,'Ago':7,'Sep':8,'Oct':9,'Nov':10,'Dic':11};return y?parseInt(y)*12+(ms[mn]||0):9999;};
+    return p(a[0])-p(b[0]);
+  });
+  mkChart('ch-cont-trend','line',{
+    labels:mSorted.map(e=>e[0]),
+    datasets:[
+      {label:'% CP OK',data:mSorted.map(e=>{const t=e[1].ok+e[1].warn+e[1].err;return t?+(e[1].ok/t*100).toFixed(1):0;}),
+        borderColor:C.ok,backgroundColor:C.ok+'22',fill:false,tension:.3,pointRadius:3},
+      {label:'% Sin CP',data:mSorted.map(e=>{const t=e[1].ok+e[1].warn+e[1].err;return t?+(e[1].err/t*100).toFixed(1):0;}),
+        borderColor:C.err,backgroundColor:C.err+'22',fill:false,tension:.3,pointRadius:3}
+    ]
+  },{
+    scales:{
+      x:{ticks:{font:{size:9}}},
+      y:{min:0,max:100,ticks:{font:{size:9},callback:v=>v+'%'}}
+    },
+    plugins:{legend:{display:true,position:'bottom',labels:{font:{size:10},boxWidth:10}}}
+  });
+
+  // Zona chart (sin CP)
+  const zMap={};
+  for(const r of ROWS){
+    if(r._cpStatus==='err'){
+      const z=r._zona||'Sin zona';
+      zMap[z]=(zMap[z]||0)+1;
+    }
+  }
+  const zSorted=Object.entries(zMap).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  mkChart('ch-zona','bar',{
+    labels:zSorted.map(e=>e[0]),
+    datasets:[{data:zSorted.map(e=>e[1]),backgroundColor:C.err+'cc',borderRadius:3}]
+  },{
+    indexAxis:'y',
+    scales:{x:{ticks:{font:{size:9}}},y:{ticks:{font:{size:9}}}},
+    plugins:{legend:{display:false}}
+  });
+
+  renderContTable();
+}
+
+function renderContTable(){
+  const srt=document.getElementById('cont-sort-f')?.value||'total';
+  const data=[...CONT_STATS];
+  if(srt==='pct_asc')  data.sort((a,b)=>((a.ok+a.warn)/a.total)-((b.ok+b.warn)/b.total));
+  else if(srt==='pct_desc') data.sort((a,b)=>((b.ok+b.warn)/b.total)-((a.ok+a.warn)/a.total));
+  else if(srt==='sincp')    data.sort((a,b)=>b.err-a.err);
+  else data.sort((a,b)=>b.total-a.total);
+
+  const start=contPage*PAGE_SIZE;
+  const slice=data.slice(start,start+PAGE_SIZE);
+  document.getElementById('cont-rank-body').innerHTML=slice.map((c,i)=>{
+    const rank=start+i+1;
+    const pct=c.total?Math.round((c.ok+c.warn)/c.total*100):0;
+    const badge=pct>=80?'bg-ok':pct>=50?'bg-warn':'bg-err';
+    const label=pct>=80?'Bueno':pct>=50?'Aceptable':'Deficiente';
+    return `<tr style="cursor:pointer" onclick="showContDetail('${escHtml(c.name)}')">
+      <td style="font-family:var(--mono);color:var(--muted);font-size:10px">${rank}</td>
+      <td style="font-weight:700;color:var(--navy)">${escHtml(c.name)}</td>
+      <td style="font-family:var(--mono);font-size:11px">${c.total.toLocaleString('es')}</td>
+      <td style="color:var(--green);font-family:var(--mono);font-weight:600">${c.ok}</td>
+      <td style="color:var(--amber);font-family:var(--mono)">${c.warn}</td>
+      <td style="color:var(--red);font-family:var(--mono);font-weight:${c.err>0?700:400}">${c.err}</td>
+      <td><span class="bg ${c.rcErr>0?'bg-err':'bg-na'}">${c.rcErr>0?c.rcErr+' RC':'—'}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="flex:1;height:6px;background:var(--bdr);border-radius:3px;max-width:70px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${pct>=80?C.ok:pct>=50?C.warn:C.err};border-radius:3px"></div>
+          </div>
+          <span style="font-family:var(--mono);font-size:11px;font-weight:600;color:${pct>=80?C.ok:pct>=50?C.warn:C.err}">${pct}%</span>
+        </div>
+      </td>
+      <td><span class="bg ${badge}">${label}</span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('cont-rank-count').textContent=data.length+' contratistas';
+  buildPager('cont-pg-info','cont-pg-btns',data.length,contPage,np=>{contPage=np;renderContTable();});
+}
+
+function showContDetail(name){
+  const c=CONT_STATS.find(x=>x.name===name);
+  if(!c) return;
+  document.getElementById('cont-detail').style.display='block';
+  document.getElementById('cont-det-name').textContent=name;
+  const pct=c.total?Math.round((c.ok+c.warn)/c.total*100):0;
+  document.getElementById('cont-det-sub').textContent=`${c.total} ops · ${c.ok} CP OK · ${c.warn} fecha dif. · ${c.err} sin CP · ${pct}% cumplimiento`;
+  contDetRows=c.rows;
+  contDetPage=0;
+  renderContDetail();
+  document.getElementById('cont-detail').scrollIntoView({behavior:'smooth'});
+}
+
+function renderContDetail(){
+  const start=contDetPage*PAGE_SIZE;
+  const slice=contDetRows.slice(start,start+PAGE_SIZE);
+  document.getElementById('cont-det-body').innerHTML=slice.map(r=>`<tr>
+    <td style="font-family:var(--mono);font-size:11px">${r._id}</td>
+    <td style="font-weight:600;color:var(--navy)">${r._ocErm}</td>
+    <td style="font-family:var(--mono)">${r._um}</td>
+    <td>${rcBadge(r._rc)}</td>
+    <td>${r._tipoOp}</td>
+    <td style="font-family:var(--mono)">${r._fechaEjec}</td>
+    <td style="font-family:var(--mono);font-weight:600;color:var(--navy)">${r._anio||'—'}</td>
+    <td>${cpBadge(r._cpStatus)}</td>
+    <td style="font-family:var(--mono)">${r._cpFechaStr}</td>
+    <td style="font-size:10px;max-width:140px;overflow:hidden;text-overflow:ellipsis">${r._operario}</td>
+    <td>${r._zona}</td>
+  </tr>`).join('');
+  document.getElementById('cont-det-count').textContent=contDetRows.length+' operaciones';
+  buildPager('cont-det-pg-info','cont-det-pg-btns',contDetRows.length,contDetPage,np=>{contDetPage=np;renderContDetail();});
+}
+
+function closeContDetail(){document.getElementById('cont-detail').style.display='none';}
+
+function exportContratistas(){
+  const wb=XLSX.utils.book_new();
+  const data=CONT_STATS.map((c,i)=>({
+    Ranking:i+1, Contratista:c.name,
+    'Total ops':c.total,'CP OK':c.ok,'Fecha diferente':c.warn,'Sin CP':c.err,'RC Sin CP':c.rcErr,
+    '% Cumplimiento':c.total?Math.round((c.ok+c.warn)/c.total*100):0,
+    Valoracion:c.total>=5?(Math.round((c.ok+c.warn)/c.total*100)>=80?'Bueno':Math.round((c.ok+c.warn)/c.total*100)>=50?'Aceptable':'Deficiente'):'Sin datos'
+  }));
+  const ws=XLSX.utils.json_to_sheet(data);
+  XLSX.utils.book_append_sheet(wb,ws,'Contratistas');
+  XLSX.writeFile(wb,'ranking_contratistas_cp.xlsx');
+}
+
+function buildZonaChart(){} // legacy stub, replaced by buildContPage
+
+function buildRCKpis(total, ok, warn, sinCP){
+  const rcOk  = ROWS.filter(r=>r._rc && r._cpStatus==='ok').length;
+  const rcWarn= ROWS.filter(r=>r._rc && r._cpStatus==='warn').length;
+  document.getElementById('kpi-rc').innerHTML=`
+    <div class="kpi k-purple"><div class="kv">${total}</div><div class="kl">Total R.C.</div><div class="ks">Recintos confinados</div></div>
+    <div class="kpi k-green"><div class="kv">${rcOk}</div><div class="kl">✅ CP Correcto</div><div class="ks"><em>${pct(rcOk,total)}%</em> fechas OK</div></div>
+    <div class="kpi k-amber"><div class="kv">${rcWarn}</div><div class="kl">⚠️ Fecha diferente</div><div class="ks"><em>${pct(rcWarn,total)}%</em> con desfase</div></div>
+    <div class="kpi k-red"><div class="kv">${sinCP}</div><div class="kl">❌ Sin CP</div><div class="ks"><em>${pct(sinCP,total)}%</em> sin registro</div></div>
+  `;
+}
+
+function buildRCPie(){
+  const rcOk  = ROWS.filter(r=>r._rc && r._cpStatus==='ok').length;
+  const rcWarn= ROWS.filter(r=>r._rc && r._cpStatus==='warn').length;
+  const rcErr = ROWS.filter(r=>r._rc && r._cpStatus==='err').length;
+  mkChart('ch-rc-pie','doughnut',{
+    labels:['CP Correcto','Fecha diferente','Sin CP'],
+    datasets:[{data:[rcOk,rcWarn,rcErr],backgroundColor:[C.ok,C.warn,C.err],borderWidth:2,borderColor:'#fff'}]
+  },{
+    plugins:{legend:{display:true,position:'bottom',labels:{font:{size:11},color:'#4a5e7e',boxWidth:12}}},
+    cutout:'60%'
+  });
+}
+
+function buildRCTipoChart(){
+  const tMap={};
+  for(const r of RC_ROWS){
+    const t=r._tipoOp||'Sin tipo';
+    if(!tMap[t]) tMap[t]={ok:0,warn:0,err:0};
+    tMap[t][r._cpStatus]++;
+  }
+  const sorted=Object.entries(tMap).sort((a,b)=>(b[1].ok+b[1].warn+b[1].err)-(a[1].ok+a[1].warn+a[1].err));
+  const labels=sorted.map(e=>e[0]);
+  mkChart('ch-rc-tipo','bar',{
+    labels,
+    datasets:[
+      {label:'CP OK',data:sorted.map(e=>e[1].ok),backgroundColor:C.ok+'cc',stack:'s'},
+      {label:'Fecha dif.',data:sorted.map(e=>e[1].warn),backgroundColor:C.warn+'cc',stack:'s'},
+      {label:'Sin CP',data:sorted.map(e=>e[1].err),backgroundColor:C.err+'cc',stack:'s'}
+    ]
+  },{
+    indexAxis:'y',
+    scales:{x:{stacked:true,ticks:{font:{size:9}}},y:{stacked:true,ticks:{font:{size:9}}}},
+    plugins:{legend:{display:true,position:'bottom',labels:{font:{size:10},boxWidth:10}}}
+  });
+}
+
+function buildSinCPCharts(){
+  const cMap={};
+  const zMap={};
+  for(const r of SINCP_ROWS){
+    const c=r._cont||'Sin info';
+    const z=r._zona||'Sin zona';
+    cMap[c]=(cMap[c]||0)+1;
+    zMap[z]=(zMap[z]||0)+1;
+  }
+  const sc=Object.entries(cMap).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const sz=Object.entries(zMap).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  mkChart('ch-sincp-cont','bar',{
+    labels:sc.map(e=>e[0]),
+    datasets:[{data:sc.map(e=>e[1]),backgroundColor:C.err+'cc',borderRadius:3}]
+  },{
+    indexAxis:'y',
+    scales:{x:{ticks:{font:{size:9}}},y:{ticks:{font:{size:9}}}},
+    plugins:{legend:{display:false}}
+  });
+  mkChart('ch-sincp-zona','bar',{
+    labels:sz.map(e=>e[0]),
+    datasets:[{data:sz.map(e=>e[1]),backgroundColor:C.navy+'cc',borderRadius:3}]
+  },{
+    indexAxis:'y',
+    scales:{x:{ticks:{font:{size:9}}},y:{ticks:{font:{size:9}}}},
+    plugins:{legend:{display:false}}
+  });
+}
+
+/* ─────────────────────────────────────────────
+   TABLES
+───────────────────────────────────────────── */
+function cpBadge(status){
+  if(status==='ok')   return '<span class="bg bg-ok">✅ CP OK</span>';
+  if(status==='warn') return '<span class="bg bg-warn">⚠️ Fecha dif.</span>';
+  return '<span class="bg bg-err">❌ Sin CP</span>';
+}
+function rcBadge(v){return v?'<span class="bg bg-rc">RC</span>':'<span class="bg bg-na">—</span>';}
+
+function renderRCTable(){
+  renderTable('rc', rcFiltered, rcPage, r=>`
+    <td style="font-family:var(--mono);font-size:11px">${r._id}</td>
+    <td style="font-weight:600;color:var(--navy)">${r._ocErm}</td>
+    <td style="font-family:var(--mono)">${r._um}</td>
+    <td>${r._tipoOp}</td>
+    <td style="font-family:var(--mono)">${r._fechaEjec}</td>
+    <td>${cpBadge(r._cpStatus)}</td>
+    <td style="font-family:var(--mono)">${r._cpFechaStr}</td>
+    <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis">${r._cpTecnico}</td>
+    <td>${r._cont}</td>
+    <td>${r._zona}</td>
+  `,'rc-count','RC totales');
+}
+
+function renderSinCPTable(){
+  renderTable('sincp', sincpFiltered, sincpPage, r=>`
+    <td style="font-family:var(--mono);font-size:11px">${r._id}</td>
+    <td style="font-weight:600;color:var(--navy)">${r._ocErm}</td>
+    <td style="font-family:var(--mono)">${r._um}</td>
+    <td>${rcBadge(r._rc)}</td>
+    <td>${r._tipoOp}</td>
+    <td style="font-family:var(--mono)">${r._fechaEjec}</td>
+    <td>${r._cont}</td>
+    <td>${r._zona}</td>
+    <td><span class="bg bg-na">${r._estado}</span></td>
+    <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;font-size:10px">${r._operario}</td>
+  `,'sincp-count','sin CP');
+}
+
+function renderTable(prefix, data, page, rowFn, countId, countLabel){
+  const start = page * PAGE_SIZE;
+  const slice = data.slice(start, start+PAGE_SIZE);
+  const tbody = document.getElementById(prefix+'-body');
+  tbody.innerHTML = slice.map(r=>`<tr>${rowFn(r)}</tr>`).join('');
+  document.getElementById(countId||prefix+'-count').textContent = data.length+' '+(countLabel||'registros');
+  buildPager(prefix+'-pg-info', prefix+'-pg-btns', data.length, page, np=>{
+    if(prefix==='rc'){rcPage=np;renderRCTable();}
+    else if(prefix==='sincp'){sincpPage=np;renderSinCPTable();}
+    else{tablaPage=np;renderTabla();}
+  });
+}
+
+function buildPager(infoId, btnsId, total, page, cb){
+  const pages = Math.ceil(total/PAGE_SIZE);
+  const info = document.getElementById(infoId);
+  const btns = document.getElementById(btnsId);
+  const start = page*PAGE_SIZE+1, end=Math.min((page+1)*PAGE_SIZE,total);
+  info.textContent = `${start}–${end} de ${total}`;
+  let html='';
+  html+=`<button class="pb" ${page===0?'disabled':''} onclick="(${cb.toString()})(${page-1})">‹</button>`;
+  const lo=Math.max(0,page-2), hi=Math.min(pages-1,page+2);
+  for(let i=lo;i<=hi;i++) html+=`<button class="pb ${i===page?'on':''}" onclick="(${cb.toString()})(${i})">${i+1}</button>`;
+  html+=`<button class="pb" ${page>=pages-1?'disabled':''} onclick="(${cb.toString()})(${page+1})">›</button>`;
+  btns.innerHTML=html;
+}
+
+/* TABLA COMPLETA */
+function populateFilters(){
+  // Operarios contratista filter (simple select — kept as-is for operarios page)
+  const conts=[...new Set(ROWS.map(r=>r._cont).filter(Boolean))].sort();
+  const opContSel=document.getElementById('oper-cont-f');
+  if(opContSel) conts.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;opContSel.appendChild(o);});
+}
+
+function setFilter(f, el){
+  tablaFilter=f; tablaPage=0;
+  document.querySelectorAll('.ftag').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  // Sync CP dropdown
+  const dd=document.getElementById('tabla-cp-status-f');
+  if(dd) dd.value=(f==='all'?'':f==='rc'?'':f);
+  filterTabla();
+}
+
+function filterTabla(){
+  const search  = document.getElementById('tabla-search').value.toLowerCase();
+  const rcFil   = document.getElementById('tabla-rc-f')?.value||'';
+  // All msel filters
+  const cpVals  = getMsel('tabla-pcp');      // ['ok','warn','err'] subset
+  const conts   = getMsel('tabla-pcont');
+  const zonas   = getMsel('tabla-pzona');
+  const estados = getMsel('tabla-pestado');
+  const anios   = getMsel('tabla-panio');
+
+  FILTERED = ROWS.filter(r=>{
+    if(cpVals.length  && !cpVals.includes(r._cpStatus))  return false;
+    if(rcFil==='si'   && !r._rc)                          return false;
+    if(rcFil==='no'   &&  r._rc)                          return false;
+    if(conts.length   && !conts.includes(r._cont))         return false;
+    if(zonas.length   && !zonas.includes(r._zona))         return false;
+    if(estados.length && !estados.includes(r._estado))     return false;
+    if(anios.length   && !anios.includes(r._anio))         return false;
+    if(search){
+      const hay=[r._id,r._ocErm,r._um,r._cpTecnico,r._cont,r._zona,r._tipoOp,r._operario,r._anio].join(' ').toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+  tablaPage=0;
+  renderTabla();
+}
+
+function updateActiveFiltersBar(){}
+
+
+function clearAllFilters(){
+  ['tabla-pcp','tabla-pcont','tabla-pzona','tabla-pestado','tabla-panio'].forEach(id=>{
+    if(MSEL[id]){ MSEL[id].sel.clear(); _mrefresh(id);
+      document.getElementById(id)?.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false);
+      document.getElementById(id)?.querySelectorAll('.msel-item').forEach(r=>r.classList.remove('checked'));
+    }
+  });
+  const rcEl=document.getElementById('tabla-rc-f'); if(rcEl) rcEl.value='';
+  const srch=document.getElementById('tabla-search'); if(srch) srch.value='';
+  tablaPage=0; FILTERED=[...ROWS]; renderTabla();
+}
+
+function filterRC(){
+  const s=document.getElementById('rc-search').value.toLowerCase();
+  const f=document.getElementById('rc-estado-f').value;
+  rcFiltered=RC_ROWS.filter(r=>{
+    if(f==='ok' && r._cpStatus!=='ok') return false;
+    if(f==='warn' && r._cpStatus!=='warn') return false;
+    if(f==='err' && r._cpStatus!=='err') return false;
+    if(s){const h=[r._id,r._ocErm,r._cont,r._zona,r._cpTecnico,r._tipoOp].join(' ').toLowerCase();if(!h.includes(s))return false;}
+    return true;
+  });
+  rcPage=0; renderRCTable();
+}
+
+function filterSinCP(){
+  const s=document.getElementById('sincp-search').value.toLowerCase();
+  const rf=document.getElementById('sincp-rc-f').value;
+  sincpFiltered=SINCP_ROWS.filter(r=>{
+    if(rf==='rc' && !r._rc) return false;
+    if(rf==='nrc' && r._rc) return false;
+    if(s){const h=[r._id,r._ocErm,r._cont,r._zona,r._operario,r._tipoOp].join(' ').toLowerCase();if(!h.includes(s))return false;}
+    return true;
+  });
+  sincpPage=0; renderSinCPTable();
+}
+
+function renderTabla(){
+  const data = FILTERED;
+  const start = tablaPage*PAGE_SIZE;
+  const slice = data.slice(start, start+PAGE_SIZE);
+  document.getElementById('tabla-body').innerHTML = slice.map(r=>`<tr>
+    <td style="font-family:var(--mono);font-size:11px">${r._id}</td>
+    <td style="font-weight:600;color:var(--navy)">${r._ocErm}</td>
+    <td style="font-family:var(--mono)">${r._um}</td>
+    <td>${rcBadge(r._rc)}</td>
+    <td>${r._tipoOp}</td>
+    <td style="font-family:var(--mono)">${r._fechaEjec}</td>
+    <td style="font-family:var(--mono);font-weight:700;color:var(--navy)">${r._anio||'—'}</td>
+    <td>${cpBadge(r._cpStatus)}</td>
+    <td style="font-family:var(--mono)">${r._cpFechaStr}</td>
+    <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;font-size:10px">${r._cpTecnico}</td>
+    <td>${r._cont}</td>
+    <td>${r._zona}</td>
+    <td><span class="bg bg-na" style="font-size:9px">${r._estado}</span></td>
+  </tr>`).join('');
+  document.getElementById('tabla-count').textContent = data.length.toLocaleString('es')+' registros';
+  document.getElementById('tabla-count').style.fontWeight='700';
+  document.getElementById('tabla-count').style.color=(data.length<ROWS.length?'var(--amber)':'var(--navy)');
+  buildPager('tabla-pg-info','tabla-pg-btns',data.length,tablaPage,np=>{tablaPage=np;renderTabla();});
+}
+
+
+/* ─────────────────────────────────────────────
+   OPERARIOS ENGINE
+───────────────────────────────────────────── */
+let OPER_STATS = [];       // [{name, total, ok, warn, err, rcErr, conts, rows}]
+let OPER_FILTERED = [];
+let operPage = 0;
+let operDetPage = 0;
+let operDetRows = [];
+
+let OPER_CONT_FILTER = ''; // active contratista filter for operarios page
+
+function buildOperStats(contFilter){
+  contFilter = contFilter || '';
+  const sourceRows = contFilter ? ROWS.filter(r=>r._cont===contFilter) : ROWS;
+  const map = {};
+  for(const r of sourceRows){
+    const names = String(r._operario||'').split(/[;\t]/).map(n=>n.trim().replace(/\s+/g,' ')).filter(Boolean);
+    if(!names.length) names.push('Sin operario');
+    for(const name of names){
+      if(!map[name]) map[name]={name,total:0,ok:0,warn:0,err:0,rcErr:0,conts:new Set(),rows:[]};
+      map[name].total++;
+      map[name][r._cpStatus]++;
+      if(r._rc && r._cpStatus==='err') map[name].rcErr++;
+      if(r._cont) map[name].conts.add(r._cont);
+      map[name].rows.push(r);
+    }
+  }
+  OPER_STATS = Object.values(map).map(o=>({...o,conts:[...o.conts]}));
+  OPER_FILTERED = [...OPER_STATS];
+}
+
+function applyOperContFilter(){
+  OPER_CONT_FILTER = document.getElementById('oper-cont-f').value;
+  buildOperStats(OPER_CONT_FILTER);
+  buildOperKpis();
+  buildOperCharts();
+  filterOperarios();
+  // Update subtitle to reflect filter
+  const sub = OPER_CONT_FILTER
+    ? `Filtrando por contratista: ${OPER_CONT_FILTER}`
+    : 'Rendimiento de cada operario en el cumplimiento del Control Previo';
+  document.querySelector('#p-oper .psub').textContent = sub;
+}
+
+function buildOperCharts(){
+  if(!OPER_STATS.length) return;
+  // Top OK chart
+  const topOk = [...OPER_STATS].sort((a,b)=>b.ok-a.ok).slice(0,12);
+  mkChart('ch-oper-top','bar',{
+    labels:topOk.map(o=>shortName(o.name)),
+    datasets:[{data:topOk.map(o=>o.ok),backgroundColor:C.ok+'cc',borderRadius:3}]
+  },{indexAxis:'y',scales:{x:{ticks:{font:{size:9}}},y:{ticks:{font:{size:9}}}},plugins:{legend:{display:false}}});
+
+  // Top fail chart (sin CP + warn)
+  const topFail = [...OPER_STATS].sort((a,b)=>(b.err+b.warn)-(a.err+a.warn)).slice(0,12);
+  mkChart('ch-oper-fail','bar',{
+    labels:topFail.map(o=>shortName(o.name)),
+    datasets:[
+      {label:'Sin CP',data:topFail.map(o=>o.err),backgroundColor:C.err+'cc',stack:'s',borderRadius:2},
+      {label:'Fecha dif.',data:topFail.map(o=>o.warn),backgroundColor:C.warn+'cc',stack:'s'}
+    ]
+  },{indexAxis:'y',scales:{x:{stacked:true,ticks:{font:{size:9}}},y:{stacked:true,ticks:{font:{size:9}}}},
+    plugins:{legend:{display:true,position:'bottom',labels:{font:{size:10},boxWidth:10}}}});
+
+  // Stacked by operario (top 15 volume)
+  const top15 = [...OPER_STATS].sort((a,b)=>b.total-a.total).slice(0,15);
+  mkChart('ch-oper-stack','bar',{
+    labels:top15.map(o=>shortName(o.name)),
+    datasets:[
+      {label:'CP OK',data:top15.map(o=>o.ok),backgroundColor:C.ok+'cc',stack:'s'},
+      {label:'Fecha dif.',data:top15.map(o=>o.warn),backgroundColor:C.warn+'cc',stack:'s'},
+      {label:'Sin CP',data:top15.map(o=>o.err),backgroundColor:C.err+'cc',stack:'s'}
+    ]
+  },{indexAxis:'y',scales:{x:{stacked:true,ticks:{font:{size:9}}},y:{stacked:true,ticks:{font:{size:9}}}},
+    plugins:{legend:{display:true,position:'top',labels:{font:{size:10},boxWidth:10}}}});
+
+  // % compliance chart (min 3 ops)
+  const pctList = [...OPER_STATS]
+    .filter(o=>o.total>=3)
+    .map(o=>({...o,pct:Math.round((o.ok+o.warn)/o.total*100)}))
+    .sort((a,b)=>b.pct-a.pct).slice(0,15);
+  mkChart('ch-oper-pct','bar',{
+    labels:pctList.map(o=>shortName(o.name)),
+    datasets:[{label:'% Cumplimiento',data:pctList.map(o=>o.pct),
+      backgroundColor:pctList.map(o=>o.pct>=80?C.ok:o.pct>=50?C.warn:C.err)+'cc',borderRadius:3}]
+  },{indexAxis:'y',
+    scales:{x:{min:0,max:100,ticks:{font:{size:9},callback:v=>v+'%'}},y:{ticks:{font:{size:9}}}},
+    plugins:{legend:{display:false}}});
+}
+
+function buildOperKpis(){
+  const total = OPER_STATS.length;
+  const buenos = OPER_STATS.filter(o=>o.total>=3 && Math.round((o.ok+o.warn)/o.total*100)>=80).length;
+  const malos  = OPER_STATS.filter(o=>o.total>=3 && Math.round((o.ok+o.warn)/o.total*100)<50).length;
+  const conRC  = OPER_STATS.filter(o=>o.rcErr>0).length;
+  const ctx    = OPER_CONT_FILTER ? ` (${OPER_CONT_FILTER})` : '';
+  document.getElementById('kpi-oper').innerHTML=`
+    <div class="kpi k-navy"><div class="kv">${total}</div><div class="kl">Operarios${ctx}</div><div class="ks">Detectados en el periodo</div></div>
+    <div class="kpi k-green"><div class="kv">${buenos}</div><div class="kl">Buen cumplimiento</div><div class="ks"><em>&ge;80%</em> operaciones con CP</div></div>
+    <div class="kpi k-red"><div class="kv">${malos}</div><div class="kl">Bajo cumplimiento</div><div class="ks"><em>&lt;50%</em> operaciones con CP</div></div>
+    <div class="kpi k-amber"><div class="kv">${conRC}</div><div class="kl">RC sin CP</div><div class="ks">Operarios con RC sin cobertura</div></div>
+  `;
+  document.getElementById('ct-oper').textContent = total;
+}
+
+function filterOperarios(){
+  const s = document.getElementById('oper-search').value.toLowerCase();
+  const cpf = document.getElementById('oper-cp-f').value;
+  const srt = document.getElementById('oper-sort-f').value;
+
+  OPER_FILTERED = OPER_STATS.filter(o=>{
+    if(s && !o.name.toLowerCase().includes(s)) return false;
+    if(cpf==='err'  && o.err===0)   return false;
+    if(cpf==='warn' && o.warn===0)  return false;
+    if(cpf==='rc'   && o.rcErr===0) return false;
+    return true;
+  });
+
+  if(srt==='pct_asc')  OPER_FILTERED.sort((a,b)=>((a.ok+a.warn)/a.total)-((b.ok+b.warn)/b.total));
+  else if(srt==='pct_desc') OPER_FILTERED.sort((a,b)=>((b.ok+b.warn)/b.total)-((a.ok+a.warn)/a.total));
+  else if(srt==='sincp')    OPER_FILTERED.sort((a,b)=>b.err-a.err);
+  else OPER_FILTERED.sort((a,b)=>b.total-a.total);
+
+  operPage = 0;
+  renderOperTable();
+}
+
+function renderOperTable(){
+  const data = OPER_FILTERED;
+  const start = operPage * PAGE_SIZE;
+  const slice = data.slice(start, start+PAGE_SIZE);
+  const tbody = document.getElementById('oper-body');
+  tbody.innerHTML = slice.map((o,i)=>{
+    const rank = start+i+1;
+    const pct = o.total ? Math.round((o.ok+o.warn)/o.total*100) : 0;
+    const pctOk = o.total ? Math.round(o.ok/o.total*100) : 0;
+    const badge = pct>=80?'bg-ok':pct>=50?'bg-warn':'bg-err';
+    const label = pct>=80?'Bueno':pct>=50?'Aceptable':'Deficiente';
+    const rcBg = o.rcErr>0?'bg-err':'bg-na';
+    const maxBar = data[0]?data[0].total:1;
+    const barW = Math.round(o.total/maxBar*80);
+    return `<tr style="cursor:pointer" onclick="showOperDetail('${escHtml(o.name)}')">
+      <td style="font-family:var(--mono);color:var(--muted);font-size:10px">${rank}</td>
+      <td style="font-weight:600;color:var(--navy);max-width:200px;overflow:hidden;text-overflow:ellipsis">${escHtml(o.name)}</td>
+      <td><div style="display:flex;align-items:center;gap:7px"><div style="height:6px;border-radius:3px;background:var(--navy);width:${barW}px"></div><span style="font-family:var(--mono);font-size:11px">${o.total}</span></div></td>
+      <td style="color:var(--green);font-family:var(--mono);font-size:11px;font-weight:600">${o.ok}</td>
+      <td style="color:var(--amber);font-family:var(--mono);font-size:11px">${o.warn}</td>
+      <td style="color:var(--red);font-family:var(--mono);font-size:11px;font-weight:${o.err>0?700:400}">${o.err}</td>
+      <td><span class="bg ${rcBg}">${o.rcErr>0?o.rcErr+'  RC':'—'}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="flex:1;height:6px;background:var(--bdr);border-radius:3px;max-width:60px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${pct>=80?C.ok:pct>=50?C.warn:C.err};border-radius:3px"></div>
+          </div>
+          <span style="font-family:var(--mono);font-size:11px;font-weight:600;color:${pct>=80?C.ok:pct>=50?C.warn:C.err}">${pct}%</span>
+        </div>
+      </td>
+      <td><span class="bg ${badge}">${label}</span></td>
+      <td style="font-size:10px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis">${o.conts.join(', ')}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('oper-count').textContent = data.length + ' operarios';
+  buildPager('oper-pg-info','oper-pg-btns',data.length,operPage,np=>{operPage=np;renderOperTable();});
+}
+
+/* DETALLE OPERARIO */
+function showOperDetail(name){
+  const o = OPER_STATS.find(x=>x.name===name);
+  if(!o) return;
+  document.getElementById('oper-detail').style.display='block';
+  document.getElementById('oper-det-name').textContent = name;
+  const pct = o.total?Math.round((o.ok+o.warn)/o.total*100):0;
+  document.getElementById('oper-det-sub').textContent =
+    `${o.total} ops · ${o.ok} CP OK · ${o.warn} fecha dif. · ${o.err} sin CP · ${pct}% cumplimiento`;
+  operDetRows = o.rows;
+  operDetPage = 0;
+  renderOperDetail();
+  document.getElementById('oper-detail').scrollIntoView({behavior:'smooth'});
+}
+
+function renderOperDetail(){
+  const start = operDetPage*PAGE_SIZE;
+  const slice = operDetRows.slice(start, start+PAGE_SIZE);
+  document.getElementById('oper-det-body').innerHTML = slice.map(r=>`<tr>
+    <td style="font-family:var(--mono);font-size:11px">${r._id}</td>
+    <td style="font-weight:600;color:var(--navy)">${r._ocErm}</td>
+    <td style="font-family:var(--mono)">${r._um}</td>
+    <td>${rcBadge(r._rc)}</td>
+    <td>${r._tipoOp}</td>
+    <td style="font-family:var(--mono)">${r._fechaEjec}</td>
+    <td>${cpBadge(r._cpStatus)}</td>
+    <td style="font-family:var(--mono)">${r._cpFechaStr}</td>
+    <td style="font-size:10px;max-width:150px;overflow:hidden;text-overflow:ellipsis">${r._cpTecnico}</td>
+    <td>${r._zona}</td>
+  </tr>`).join('');
+  document.getElementById('oper-det-count').textContent = operDetRows.length+' operaciones';
+  buildPager('oper-det-pg-info','oper-det-pg-btns',operDetRows.length,operDetPage,np=>{operDetPage=np;renderOperDetail();});
+}
+
+function closeOperDetail(){
+  document.getElementById('oper-detail').style.display='none';
+  operDetRows=[];
+}
+
+function exportOperarios(){
+  const wb = XLSX.utils.book_new();
+  const data = OPER_FILTERED.map((o,i)=>({
+    Ranking:i+1, Operario:o.name,
+    'Total ops':o.total, 'CP OK':o.ok,
+    'Fecha diferente':o.warn, 'Sin CP':o.err,
+    'RC Sin CP':o.rcErr,
+    '% Cumplimiento':o.total?Math.round((o.ok+o.warn)/o.total*100):0,
+    Valoracion:o.total>=3?(Math.round((o.ok+o.warn)/o.total*100)>=80?'Bueno':Math.round((o.ok+o.warn)/o.total*100)>=50?'Aceptable':'Deficiente'):'Sin datos',
+    Contratistas:o.conts.join('; ')
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  XLSX.utils.book_append_sheet(wb,ws,'Ranking Operarios');
+  XLSX.writeFile(wb,'ranking_operarios_cp.xlsx');
+}
+
+function shortName(n){
+  // "APELLIDO APELLIDO, NOMBRE" or "NOMBRE APELLIDO" → short form
+  const parts=n.split(/[,\s]+/).filter(Boolean);
+  return parts.length>=2?parts[0]+' '+parts[parts.length-1]:n;
+}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function sortTabla(col){
+  if(tablaSort.col===col) tablaSort.asc=!tablaSort.asc;
+  else{tablaSort.col=col;tablaSort.asc=true;}
+  const key = col==='ID'?'_id':col==='OC-ERM'?'_ocErm':col==='Tipo Operacion'?'_tipoOp':col==='Fecha Ejecucion'?'_parsedEjec':col==='anio'?'_anio':col==='estado'?'_estado':'_id';
+  FILTERED.sort((a,b)=>{
+    let va=a[key],vb=b[key];
+    if(va instanceof Date && vb instanceof Date) return tablaSort.asc?va-vb:vb-va;
+    va=String(va||'').toLowerCase(); vb=String(vb||'').toLowerCase();
+    return tablaSort.asc?va.localeCompare(vb):vb.localeCompare(va);
+  });
+  tablaPage=0; renderTabla();
+}
+
+/* ─────────────────────────────────────────────
+   EXPORT
+───────────────────────────────────────────── */
+
+/* ═══════════════════════════════════════════════════
+   PAGE-LEVEL FILTERS
+═══════════════════════════════════════════════════*/
+
+/* ══════════════════════════════════════════════════
+   MULTI-SELECT ENGINE (clean rewrite)
+══════════════════════════════════════════════════ */
+const MSEL = {}; // id → { opts:[{val,lbl}], sel:Set, onChange, placeholder }
+
+/* Each option can be a string or {val, lbl} object */
+function initMsel(id, opts, placeholder, onChange){
+  const norm = opts.map(o => typeof o==='string' ? {val:o, lbl:o} : o);
+  // preserve existing selection if re-init
+  const existing = MSEL[id]?.sel || new Set();
+  MSEL[id] = { opts:norm, sel: existing, placeholder, onChange };
+  const el = document.getElementById(id);
+  if(!el) return;
+  const list = el.querySelector('.msel-list');
+  if(!list) return;
+  list.innerHTML = '';
+  norm.forEach(({val, lbl}) => {
+    const row = document.createElement('label');
+    row.className = 'msel-item' + (existing.has(val) ? ' checked' : '');
+    row.innerHTML = `<input type="checkbox" value="${_h(val)}"${existing.has(val)?' checked':''}> <span>${_h(lbl)}</span>`;
+    row.querySelector('input').addEventListener('change', function(){
+      if(this.checked) MSEL[id].sel.add(val); else MSEL[id].sel.delete(val);
+      row.classList.toggle('checked', this.checked);
+      _mrefresh(id);
+      if(MSEL[id].onChange) MSEL[id].onChange();
+    });
+    list.appendChild(row);
+  });
+  _mrefresh(id);
+}
+
+function _mrefresh(id){
+  const s = MSEL[id]; if(!s) return;
+  const el = document.getElementById(id); if(!el) return;
+  const badge = el.querySelector('.msel-badge');
+  const lbl   = el.querySelector('.msel-lbl');
+  const n = s.sel.size;
+  if(n === 0){
+    if(lbl) lbl.textContent = s.placeholder;
+    if(badge) badge.style.display = 'none';
+    el.classList.remove('has-val');
+  } else {
+    const lbls = s.opts.filter(o=>s.sel.has(o.val)).map(o=>o.lbl);
+    if(lbl) lbl.textContent = lbls.length<=2 ? lbls.join(', ') : lbls[0]+' +'+(lbls.length-1);
+    if(badge){ badge.textContent = n; badge.style.display = ''; }
+    el.classList.add('has-val');
+  }
+}
+
+function getMsel(id){ return MSEL[id] ? [...MSEL[id].sel] : []; }
+function hasMsel(id){ return !!(MSEL[id]?.sel.size > 0); }
+
+function toggleMsel(id, ev){
+  if(ev) ev.stopPropagation();
+  const el = document.getElementById(id); if(!el) return;
+  const wasOpen = el.classList.contains('open');
+  document.querySelectorAll('.msel.open').forEach(m=>m.classList.remove('open'));
+  if(!wasOpen){ el.classList.add('open'); el.querySelector('.msel-srch input')?.focus(); }
+}
+
+function mselSearch(id, q){
+  document.getElementById(id)?.querySelectorAll('.msel-item').forEach(row=>{
+    const v = row.querySelector('input')?.value||'';
+    const t = row.querySelector('span')?.textContent||'';
+    row.style.display = (v+t).toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function mselAll(id){
+  if(!MSEL[id]) return;
+  document.getElementById(id)?.querySelectorAll('.msel-item').forEach(row=>{
+    if(row.style.display==='none') return;
+    const cb = row.querySelector('input');
+    if(!cb.checked){ cb.checked=true; row.classList.add('checked'); MSEL[id].sel.add(cb.value); }
+  });
+  _mrefresh(id); if(MSEL[id].onChange) MSEL[id].onChange();
+}
+
+function mselClear(id){
+  if(!MSEL[id]) return;
+  MSEL[id].sel.clear();
+  document.getElementById(id)?.querySelectorAll('input[type=checkbox]').forEach(cb=>{ cb.checked=false; });
+  document.getElementById(id)?.querySelectorAll('.msel-item').forEach(r=>r.classList.remove('checked'));
+  _mrefresh(id); if(MSEL[id].onChange) MSEL[id].onChange();
+}
+
+function _h(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Close on outside click — bubble phase, not capture
+document.addEventListener('click', e=>{
+  if(!e.target.closest('.msel')) document.querySelectorAll('.msel.open').forEach(m=>m.classList.remove('open'));
+});
+
+/* ════════════════════════════════════════════════════════
+   PAGE FILTER BARS — populate + clear
+════════════════════════════════════════════════════════ */
+function populatePageBars(){
+  const conts   = [...new Set(ROWS.map(r=>r._cont).filter(Boolean))].sort();
+  const zonas   = [...new Set(ROWS.map(r=>r._zona).filter(Boolean))].sort();
+  const estados = [...new Set(ROWS.map(r=>r._estado).filter(Boolean))].sort();
+  const anios   = [...new Set(ROWS.map(r=>r._anio).filter(Boolean))].sort();
+  // Months sorted chronologically
+  const mMap = {};
+  ROWS.forEach(r=>{ const m=dateToMonth(r._parsedEjec); if(m&&m!=='Sin fecha') mMap[m]=1; });
+  const meses = Object.keys(mMap).sort((a,b)=>{
+    const p=s=>{const[mn,y]=s.split(' ');const ms={Ene:0,Feb:1,Mar:2,Abr:3,May:4,Jun:5,Jul:6,Ago:7,Sep:8,Oct:9,Nov:10,Dic:11};return parseInt(y)*12+(ms[mn]||0);};
+    return p(a)-p(b);
+  });
+  // CP status options (val=code, lbl=display)
+  const cpOpts = [
+    {val:'ok',  lbl:'✅ CP OK'},
+    {val:'warn',lbl:'⚠️ Fecha diferente'},
+    {val:'err', lbl:'❌ Sin CP'}
+  ];
+
+  // Page filter bars
+  ['res','rc','sincp'].forEach(pid => {
+    initMsel(pid+'-pcont', conts, 'Contratista', ()=>rebuildPage(pid));
+    initMsel(pid+'-pzona', zonas, 'Zona',         ()=>rebuildPage(pid));
+    initMsel(pid+'-pmes',  meses, 'Mes',           ()=>rebuildPage(pid));
+  });
+
+  // Tabla completa — all msel
+  initMsel('tabla-pcp',     cpOpts,  'Estado CP',    filterTabla);
+  initMsel('tabla-pcont',   conts,   'Contratista',  filterTabla);
+  initMsel('tabla-pzona',   zonas,   'Zona',          filterTabla);
+  initMsel('tabla-pestado', estados, 'Estado orden',  filterTabla);
+  initMsel('tabla-panio',   anios,   'Año',            filterTabla);
+}
+
+function clearPageBar(pid){
+  ['pcont','pzona','pmes'].forEach(k => mselClear(pid+'-'+k));
+  rebuildPage(pid);
+}
+
+/* Updated getPageRows to use msel */
+function getPageRows(pid){
+  const conts = getMsel(pid+'-pcont');
+  const zonas = getMsel(pid+'-pzona');
+  const meses = getMsel(pid+'-pmes');
+  let src = ROWS;
+  if(pid==='rc')    src = RC_ROWS;
+  if(pid==='sincp') src = SINCP_ROWS;
+  return src.filter(r=>{
+    if(conts.length && !conts.includes(r._cont)) return false;
+    if(zonas.length && !zonas.includes(r._zona)) return false;
+    const m = dateToMonth(r._parsedEjec)||'Sin fecha';
+    if(meses.length && !meses.includes(m)) return false;
+    return true;
+  });
+}
+
+// getPageRows and populatePageBars replaced above
+function getPageRows_OLD(pid){
+  const cont = document.getElementById(pid+'-pcont')?.value||'';
+  const anio = document.getElementById(pid+'-panio')?.value||'';
+  let src = ROWS;
+  if(pid==='rc')    src = RC_ROWS;
+  if(pid==='sincp') src = SINCP_ROWS;
+  return src.filter(r=>(!cont||r._cont===cont)&&(!anio||r._anio===anio));
+}
+
+function getPageRows_flag(pid){const c=getMsel(pid+"-pcont"),z=getMsel(pid+"-pzona"),m=getMsel(pid+"-pmes");return c.length||z.length||m.length;}
+function rebuildPage(pid){
+  const rows = getPageRows(pid);
+  if(pid==='res'){
+    const ok  = rows.filter(r=>r._cpStatus==='ok').length;
+    const w   = rows.filter(r=>r._cpStatus==='warn').length;
+    const e   = rows.filter(r=>r._cpStatus==='err').length;
+    const tot = rows.length;
+    const rcTot   = rows.filter(r=>r._rc).length;
+    const rcSinCP = rows.filter(r=>r._rc && r._cpStatus==='err').length;
+    // Update KPI cards
+    document.getElementById('kpi-row').innerHTML = `
+      <div class="kpi k-gray"><div class="kv">${tot.toLocaleString('es')}</div><div class="kl">Total operaciones</div><div class="ks">Filtro activo</div></div>
+      <div class="kpi k-green"><div class="kv">${ok.toLocaleString('es')}</div><div class="kl">✅ CP Correcto</div><div class="ks"><em>${pct(ok,tot)}%</em> fechas coinciden</div></div>
+      <div class="kpi k-amber"><div class="kv">${w.toLocaleString('es')}</div><div class="kl">⚠️ Fecha diferente</div><div class="ks"><em>${pct(w,tot)}%</em> CP con desfase</div></div>
+      <div class="kpi k-red"><div class="kv">${e.toLocaleString('es')}</div><div class="kl">❌ Sin CP</div><div class="ks"><em>${pct(e,tot)}%</em> sin registro</div></div>
+      <div class="kpi k-purple"><div class="kv">${rcSinCP}</div><div class="kl">⚠️ RC Sin CP</div><div class="ks">de <em>${rcTot}</em> R.C. totales</div></div>
+    `;
+    // Update subtitle
+    const sub = document.getElementById('res-sub');
+    const hasFil = getPageRows_flag(pid);
+    if(sub) sub.textContent = (hasFil?'Mostrando '+tot+' de '+ROWS.length+' operaciones (filtrado)':'Análisis · '+tot+' operaciones cruzadas');
+    // Rebuild charts
+    buildDonut(ok,w,e);
+    buildMonthChart(rows);
+    buildTipoOpChart(rows);
+    buildContChart(rows);
+  }
+  if(pid==='rc'){
+    const rcSinCP=rows.filter(r=>r._cpStatus==='err').length;
+    buildRCKpis(rows.length,
+      rows.filter(r=>r._cpStatus==='ok').length,
+      rows.filter(r=>r._cpStatus==='warn').length,
+      rcSinCP);
+    buildRCPieFromData(rows);
+    buildRCTipoChartFromData(rows);
+    rcFiltered=rows; renderRCTable();
+  }
+  if(pid==='sincp'){
+    buildSinCPChartsFromData(rows);
+    sincpFiltered=rows; renderSinCPTable();
+  }
+}
+
+function clearPageBar(pid){
+  const c=document.getElementById(pid+'-pcont');
+  const a=document.getElementById(pid+'-panio');
+  if(c) c.value='';
+  if(a) a.value='';
+  rebuildPage(pid);
+}
+
+function populatePageBars_OLD(){
+  const conts=[...new Set(ROWS.map(r=>r._cont).filter(Boolean))].sort();
+  const anios=[...new Set(ROWS.map(r=>r._anio).filter(Boolean))].sort();
+  ['res','rc','sincp'].forEach(pid=>{
+    const cs=document.getElementById(pid+'-pcont');
+    const as=document.getElementById(pid+'-panio');
+    if(cs) conts.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cs.appendChild(o);});
+    if(as) anios.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;as.appendChild(o);});
+  });
+}
+
+/* ═══════════════════════════════════════════════════
+   MULTI-SELECT CP FILTER (tabla completa)
+═══════════════════════════════════════════════════*/
+let tablaFilterSet = new Set();
+
+function toggleCpFilter(f, el){
+  if(f==='all'){
+    tablaFilterSet.clear();
+    document.querySelectorAll('.ftag').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');
+    const dd=document.getElementById('tabla-cp-status-f');
+    if(dd) dd.value='';
+  } else {
+    document.querySelector('.ftag.all')?.classList.remove('active');
+    if(tablaFilterSet.has(f)){ tablaFilterSet.delete(f); el.classList.remove('active'); }
+    else                      { tablaFilterSet.add(f);    el.classList.add('active');    }
+    if(tablaFilterSet.size===0) document.querySelector('.ftag.all')?.classList.add('active');
+    // sync dropdown
+    const dd=document.getElementById('tabla-cp-status-f');
+    if(dd){ dd.value=(tablaFilterSet.size===1&&!tablaFilterSet.has('rc'))?[...tablaFilterSet][0]:''; }
+  }
+  tablaPage=0; filterTabla();
+}
+
+function syncCpDropdown(){ return; //
+  const v=document.getElementById('tabla-cp-status-f').value;
+  tablaFilterSet.clear();
+  document.querySelectorAll('.ftag').forEach(t=>t.classList.remove('active'));
+  if(v){ tablaFilterSet.add(v); document.querySelector('.ftag[data-f="'+v+'"]')?.classList.add('active'); }
+  else  { document.querySelector('.ftag.all')?.classList.add('active'); }
+  filterTabla();
+}
+
+/* ═══════════════════════════════════════════════════
+   PARAMETERISED RC/SIN-CP CHART BUILDERS
+═══════════════════════════════════════════════════*/
+function buildRCPieFromData(rows){
+  const ok=rows.filter(r=>r._cpStatus==='ok').length;
+  const w =rows.filter(r=>r._cpStatus==='warn').length;
+  const e =rows.filter(r=>r._cpStatus==='err').length;
+  mkChart('ch-rc-pie','doughnut',{
+    labels:['CP Correcto','Fecha diferente','Sin CP'],
+    datasets:[{data:[ok,w,e],backgroundColor:[C.ok,C.warn,C.err],borderWidth:2,borderColor:'#fff'}]
+  },{plugins:{legend:{display:true,position:'bottom',labels:{font:{size:11},color:'#4a5e7e',boxWidth:12}}},cutout:'60%'});
+}
+
+function buildRCTipoChartFromData(rows){
+  const tMap={};
+  for(const r of rows){
+    const t=r._tipoOp||'Sin tipo';
+    if(!tMap[t]) tMap[t]={ok:0,warn:0,err:0};
+    tMap[t][r._cpStatus]++;
+  }
+  const sorted=Object.entries(tMap).sort((a,b)=>(b[1].ok+b[1].warn+b[1].err)-(a[1].ok+a[1].warn+a[1].err));
+  mkChart('ch-rc-tipo','bar',{
+    labels:sorted.map(e=>e[0]),
+    datasets:[
+      {label:'CP OK',data:sorted.map(e=>e[1].ok),backgroundColor:C.ok+'cc',stack:'s'},
+      {label:'Fecha dif.',data:sorted.map(e=>e[1].warn),backgroundColor:C.warn+'cc',stack:'s'},
+      {label:'Sin CP',data:sorted.map(e=>e[1].err),backgroundColor:C.err+'cc',stack:'s'}
+    ]
+  },{indexAxis:'y',
+    scales:{x:{stacked:true,ticks:{font:{size:9}}},y:{stacked:true,ticks:{font:{size:9}}}},
+    plugins:{legend:{display:true,position:'bottom',labels:{font:{size:10},boxWidth:10}}}});
+}
+
+function buildSinCPChartsFromData(rows){
+  const cMap={}, zMap={};
+  for(const r of rows){
+    cMap[r._cont||'Sin info']=(cMap[r._cont||'Sin info']||0)+1;
+    zMap[r._zona||'Sin zona']=(zMap[r._zona||'Sin zona']||0)+1;
+  }
+  const sc=Object.entries(cMap).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const sz=Object.entries(zMap).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  mkChart('ch-sincp-cont','bar',{labels:sc.map(e=>e[0]),datasets:[{data:sc.map(e=>e[1]),backgroundColor:C.err+'cc',borderRadius:3}]},
+    {indexAxis:'y',scales:{x:{ticks:{font:{size:9}}},y:{ticks:{font:{size:9}}}},plugins:{legend:{display:false}}});
+  mkChart('ch-sincp-zona','bar',{labels:sz.map(e=>e[0]),datasets:[{data:sz.map(e=>e[1]),backgroundColor:C.navy+'cc',borderRadius:3}]},
+    {indexAxis:'y',scales:{x:{ticks:{font:{size:9}}},y:{ticks:{font:{size:9}}}},plugins:{legend:{display:false}}});
+}
+
+/* ═══════════════════════════════════════════════════
+   SCATTER: volume vs compliance (replaces duplicate stacked)
+═══════════════════════════════════════════════════*/
+function buildContScatter(){
+  const pts=CONT_STATS.filter(c=>c.total>=3).map(c=>({
+    x:c.total, y:c.total?+(c.ok/c.total*100).toFixed(1):0,
+    label:c.name, err:c.err, warn:c.warn, ok:c.ok
+  }));
+  mkChart('ch-cont-scatter','bubble',{
+    datasets:[{
+      data:pts.map(p=>({x:p.x,y:p.y,r:Math.max(4,Math.min(16,Math.sqrt(p.x)*0.5)),label:p.label,err:p.err})),
+      backgroundColor:pts.map(p=>p.y>=80?C.ok+'99':p.y>=50?C.warn+'99':C.err+'99'),
+      borderColor:pts.map(p=>p.y>=80?C.ok:p.y>=50?C.warn:C.err),borderWidth:1.5
+    }]
+  },{
+    scales:{
+      x:{title:{display:true,text:'Total operaciones',font:{size:10}},ticks:{font:{size:9}}},
+      y:{min:0,max:100,title:{display:true,text:'% CP OK',font:{size:10}},ticks:{font:{size:9},callback:v=>v+'%'}}
+    },
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>{
+        const d=ctx.raw;
+        return [`${d.label}`,`Total: ${d.x}  CP OK: ${ctx.raw.y}%`,`Sin CP: ${d.err}`];
+      }}}
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════════
+   PER-PAGE EXPORTS (filtered data)
+═══════════════════════════════════════════════════*/
+function rowsToExcelData(rows){
+  return rows.map(r=>({
+    ID:r._id,'OC-ERM':r._ocErm,UM:r._um,'R.C.':r._rc?'Sí':'No',
+    'Tipo Operación':r._tipoOp,'Fecha Ejecución':r._fechaEjec,Año:r._anio||'—',
+    'Estado CP':r._cpStatus==='ok'?'CP OK':r._cpStatus==='warn'?'Fecha diferente':'Sin CP',
+    'Fecha CP':r._cpFechaStr,'Técnico CP':r._cpTecnico,
+    Contratista:r._cont,Zona:r._zona,Estado:r._estado,Operario:r._operario,
+    'Delta días':r._cpDelta!==null&&r._cpDelta!==undefined?r._cpDelta:'—'
+  }));
+}
+function exportPage(rows, filename){
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.json_to_sheet(rowsToExcelData(rows));
+  XLSX.utils.book_append_sheet(wb,ws,'Datos');
+  XLSX.writeFile(wb,filename);
+}
+
+function exportRows(rows, name){
+  const wb=XLSX.utils.book_new();
+  const data=rows.map(r=>({
+    ID:r._id, 'OC-ERM':r._ocErm, UM:r._um,
+    'R.C.':r._rc?'Sí':'No',
+    'Tipo Operación':r._tipoOp,
+    'Fecha Ejecución':r._fechaEjec,
+    'Estado CP':r._cpStatus==='ok'?'CP OK':r._cpStatus==='warn'?'Fecha diferente':'Sin CP',
+    'Fecha CP':r._cpFechaStr,
+    'Técnico CP':r._cpTecnico,
+    Contratista:r._cont,
+    Zona:r._zona,
+    Estado:r._estado,
+    Operario:r._operario,
+    'Delta días':r._cpDelta!==null?r._cpDelta:'—'
+  }));
+  const ws=XLSX.utils.json_to_sheet(data);
+  XLSX.utils.book_append_sheet(wb,ws,'Análisis CP');
+  XLSX.writeFile(wb,name);
+}
+function exportAll(){exportRows(ROWS,'analisis_control_previo_completo.xlsx');}
+function exportSinCP(){exportRows(SINCP_ROWS,'operaciones_sin_control_previo.xlsx');}
+
+/* ─────────────────────────────────────────────
+   UTILS
+───────────────────────────────────────────── */
+function pct(a,b){return b?Math.round(a/b*100):0;}
+function uniqueTecnicos(){return [...new Set(ROWS.filter(r=>r._cpTecnico&&r._cpTecnico!=='—').map(r=>r._cpTecnico))];}
+
+function unlockNav(){
+  ['ni-res','ni-tec','ni-rc','ni-sincp','ni-oper','ni-tabla'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.style.pointerEvents=''; el.style.opacity='';
+  });
+}
+
+function showLoader(msg){
+  document.getElementById('ld').classList.add('on');
+  document.getElementById('lm').textContent=msg||'Procesando...';
+}
+function setMsg(m){document.getElementById('lm').textContent=m;}
+function hideLoader(){document.getElementById('ld').classList.remove('on');}
+
+function resetTool(){
+  ROWS=[]; FILTERED=[]; RC_ROWS=[]; SINCP_ROWS=[]; OPER_CONT_FILTER="";
+  file1=null; file2=null;
+  Object.values(CHARTS).forEach(c=>{try{c.destroy();}catch(e){}});
+  CHARTS={};
+  const dz1=document.getElementById('dz1'); if(dz1) dz1.classList.remove('done');
+  const dz2=document.getElementById('dz2'); if(dz2) dz2.classList.remove('done');
+  const dn1=document.getElementById('dz1-name'); if(dn1) dn1.textContent='';
+  const dn2=document.getElementById('dz2-name'); if(dn2) dn2.textContent='';
+  const fi1=document.getElementById('fi1'); if(fi1) fi1.value='';
+  const fi2=document.getElementById('fi2'); if(fi2) fi2.value='';
+  const bp=document.getElementById('btn-proc'); if(bp) bp.disabled=true;
+  document.getElementById('hd-ops').style.display='none';
+  document.getElementById('hd-date').style.display='none';
+  document.getElementById('btn-reset').style.display='none';
+  ['ni-res','ni-tec','ni-rc','ni-sincp','ni-oper','ni-tabla'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.style.pointerEvents='none'; el.style.opacity='.35';
+  });
+  ['ct-total','ct-tec','ct-rc','ct-sincp','ct-tabla'].forEach(id=>{document.getElementById(id).textContent='—';});
+  document.getElementById('sb-info').innerHTML='Carga los dos ficheros<br>para comenzar el análisis.';
+  nav(document.querySelector('.ni[data-p="p-up"]'));
+}
+</script>
+</body>
+</html>
