@@ -1319,14 +1319,16 @@ function crossData(detalleData, desglosadoData){
     if(cpMap[id]) idToCpInfo[id] = cpMap[id];
   }
 
-  // ── 5. Build OC-ERM+UM dedup map
-  // If ANY id in an OC-ERM+UM group has CP → whole group gets CP
+  // ── 5. Build OC-ERM+UM+Fecha dedup map
+  // Groups by installation + execution date so different contractors on different
+  // dates don't inherit each other's CP (e.g. TRADIVEL in May ≠ TEYCO in October)
   const ocUmToCP = {};
   for(const row of rows2){
     const id    = String(row[idIdx]).trim();
     const ocErm = String(row[ocErmIdx>=0?ocErmIdx:0]).trim();
     const um    = String(row[umIdx>=0?umIdx:0]).trim();
-    const key   = ocErm+'|||'+um;
+    const fe    = fechaEjecIdx>=0 ? String(row[fechaEjecIdx]).trim() : '';
+    const key   = ocErm+'|||'+um+'|||'+fe;
     if(idToCpInfo[id] && !ocUmToCP[key]){
       ocUmToCP[key] = idToCpInfo[id];
     }
@@ -1335,15 +1337,14 @@ function crossData(detalleData, desglosadoData){
   // ── 6. Second pass: classify each row
   const result = [];
   for(const row of rows2){
-    const id    = String(row[idIdx]).trim();
-    const ocErm = String(row[ocErmIdx>=0?ocErmIdx:0]).trim();
-    const um    = String(row[umIdx>=0?umIdx:0]).trim();
-    const groupKey = ocErm+'|||'+um;
-
-    // Direct match first, then group match
-    const cpInfo = idToCpInfo[id] || ocUmToCP[groupKey] || null;
-
+    const id       = String(row[idIdx]).trim();
+    const ocErm    = String(row[ocErmIdx>=0?ocErmIdx:0]).trim();
+    const um       = String(row[umIdx>=0?umIdx:0]).trim();
     const fechaEjec = row[fechaEjecIdx>=0?fechaEjecIdx:0];
+    const groupKey = ocErm+'|||'+um+'|||'+String(fechaEjec).trim();
+
+    // Direct match first, then group match (same installation + same day)
+    const cpInfo = idToCpInfo[id] || ocUmToCP[groupKey] || null;
     const parsedEjec = parseDesglosadoDate(fechaEjec);
 
     let cpStatus, cpDelta = null;
