@@ -5,9 +5,44 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NEDGIA · Portal U.M.</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;}
+
+/* ── AUTH SCREEN ── */
+#auth-screen{
+  position:fixed;inset:0;z-index:9999;
+  background:#1A3F6B;
+  display:flex;align-items:center;justify-content:center;
+}
+#auth-screen.hidden{display:none;}
+.auth-card{
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:12px;
+  padding:40px 44px;
+  width:100%;max-width:360px;
+  text-align:center;
+}
+.auth-logo{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;color:#F5A623;letter-spacing:.08em;margin-bottom:6px;}
+.auth-sub{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:32px;}
+.auth-field{margin-bottom:14px;text-align:left;}
+.auth-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.4);display:block;margin-bottom:6px;}
+.auth-input{width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:11px 14px;font-size:13px;color:#fff;outline:none;font-family:'DM Sans',sans-serif;transition:border-color .15s;}
+.auth-input:focus{border-color:#F5A623;background:rgba(255,255,255,.1);}
+.auth-input::placeholder{color:rgba(255,255,255,.25);}
+.auth-btn{width:100%;background:#F5A623;color:#1A3F6B;border:none;border-radius:6px;padding:13px;font-size:14px;font-weight:600;cursor:pointer;margin-top:6px;transition:background .15s;font-family:'DM Sans',sans-serif;}
+.auth-btn:hover{background:#d4920a;}
+.auth-btn:disabled{opacity:.5;cursor:default;}
+.auth-err{font-size:12px;color:#f87171;margin-top:12px;min-height:18px;font-family:'DM Mono',monospace;}
+.auth-spinner{display:none;width:20px;height:20px;border:2px solid rgba(255,255,255,.2);border-top-color:#F5A623;border-radius:50%;animation:spin .7s linear infinite;margin:10px auto 0;}
+.auth-spinner.on{display:block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── PORTAL ── */
+#portal{display:none;flex-direction:column;height:100%;}
+#portal.visible{display:flex;}
 
 #portal-bar{
   height:50px;
@@ -16,103 +51,132 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;}
   display:flex;
   align-items:center;
   padding:0 20px;
-  gap:24px;
+  gap:16px;
   flex-shrink:0;
-  position:fixed;
-  top:0;left:0;right:0;
-  z-index:100;
 }
-
-.portal-logo{
-  font-family:'DM Mono',monospace;
-  font-size:15px;
-  font-weight:500;
-  color:#fff;
-  letter-spacing:.08em;
-  white-space:nowrap;
-}
-.portal-sep{
-  width:1px;height:24px;
-  background:rgba(255,255,255,.2);
-}
-.portal-tabs{
-  display:flex;
-  gap:4px;
-}
+.portal-logo{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;color:#fff;letter-spacing:.08em;white-space:nowrap;}
+.portal-sep{width:1px;height:24px;background:rgba(255,255,255,.2);}
+.portal-tabs{display:flex;gap:4px;}
 .ptab{
-  height:34px;
-  padding:0 16px;
+  height:34px;padding:0 16px;
   background:rgba(255,255,255,.08);
   border:1px solid rgba(255,255,255,.18);
   color:rgba(255,255,255,.65);
-  font-family:'DM Sans',sans-serif;
-  font-size:12px;
-  font-weight:500;
-  cursor:pointer;
-  border-radius:4px;
-  transition:all .15s;
-  white-space:nowrap;
+  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;
+  cursor:pointer;border-radius:4px;transition:all .15s;white-space:nowrap;
 }
-.ptab:hover{
-  background:rgba(255,255,255,.15);
-  color:#fff;
-}
-.ptab.active{
-  background:rgba(245,166,35,.18);
-  border-color:#F5A623;
-  color:#F5A623;
-  font-weight:600;
-}
+.ptab:hover{background:rgba(255,255,255,.15);color:#fff;}
+.ptab.active{background:rgba(245,166,35,.18);border-color:#F5A623;color:#F5A623;font-weight:600;}
+.portal-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.portal-user{font-size:11px;color:rgba(255,255,255,.45);font-family:'DM Mono',monospace;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis;}
+.portal-badge{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,.35);letter-spacing:.1em;text-transform:uppercase;}
+.logout-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);border-radius:4px;padding:5px 12px;font-size:11px;font-weight:500;cursor:pointer;transition:background .15s;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.logout-btn:hover{background:rgba(255,255,255,.15);color:#fff;}
 
-.portal-badge{
-  margin-left:auto;
-  font-family:'DM Mono',monospace;
-  font-size:10px;
-  color:rgba(255,255,255,.4);
-  letter-spacing:.1em;
-  text-transform:uppercase;
-}
-
-#frames{
-  position:fixed;
-  top:50px;left:0;right:0;bottom:0;
-}
-.pframe{
-  width:100%;
-  height:100%;
-  border:none;
-  display:none;
-}
-.pframe.active{
-  display:block;
-}
+#frames{flex:1;position:relative;overflow:hidden;}
+.pframe{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
+.pframe.active{display:block;}
 </style>
 </head>
 <body>
 
-<div id="portal-bar">
-  <span class="portal-logo">NEDGIA</span>
-  <div class="portal-sep"></div>
-  <div class="portal-tabs">
-    <button class="ptab active" id="tab-ofertas" onclick="showTool('ofertas', this)">📋 Ofertas U-Medición</button>
-    <button class="ptab" id="tab-contratos" onclick="showTool('contratos', this)">📄 Contratos de Alquiler</button>
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">NEDGIA</div>
+    <div class="auth-sub">Portal U.M. — Ofertas y Contratos</div>
+    <div class="auth-field">
+      <label class="auth-label">Email corporativo</label>
+      <input class="auth-input" type="email" id="auth-email" placeholder="nombre@nedgia.es" autocomplete="email">
+    </div>
+    <div class="auth-field">
+      <label class="auth-label">Contraseña</label>
+      <input class="auth-input" type="password" id="auth-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="auth-btn" id="auth-btn" onclick="doLogin()">Entrar</button>
+    <div class="auth-spinner" id="auth-spinner"></div>
+    <div class="auth-err" id="auth-err"></div>
   </div>
-  <span class="portal-badge">USO INTERNO</span>
 </div>
 
-<div id="frames">
-  <iframe class="pframe active" id="frame-ofertas"   src="formulario_nedgia_DEFINITIVO_FINAL.html"></iframe>
-  <iframe class="pframe"        id="frame-contratos" src="CONTRATOS_NEDGIA.html"></iframe>
+<!-- PORTAL -->
+<div id="portal">
+  <div id="portal-bar">
+    <span class="portal-logo">NEDGIA</span>
+    <div class="portal-sep"></div>
+    <div class="portal-tabs">
+      <button class="ptab active" id="tab-ofertas" onclick="showTool('ofertas',this)">📋 Ofertas U-Medición</button>
+      <button class="ptab" id="tab-contratos" onclick="showTool('contratos',this)">📄 Contratos de Alquiler</button>
+    </div>
+    <div class="portal-right">
+      <span class="portal-user" id="portal-user"></span>
+      <span class="portal-badge">USO INTERNO</span>
+      <button class="logout-btn" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+  <div id="frames">
+    <iframe class="pframe active" id="frame-ofertas"   src="formulario_nedgia_DEFINITIVO_FINAL.html"></iframe>
+    <iframe class="pframe"        id="frame-contratos" src="CONTRATOS_NEDGIA.html"></iframe>
+  </div>
 </div>
 
 <script>
+const PORTAL_URL  = 'https://fnghsgobmbqqhtctmxtd.supabase.co';
+const PORTAL_ANON = 'sb_publishable_RKPh6n-ridhEgSmmLic7JQ_BIXRqRog';
+const sb = supabase.createClient(PORTAL_URL, PORTAL_ANON);
+
+async function doLogin(){
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-pass').value;
+  const errEl = document.getElementById('auth-err');
+  const btn   = document.getElementById('auth-btn');
+  const spin  = document.getElementById('auth-spinner');
+
+  if(!email||!pass){ errEl.textContent='Introduce email y contraseña.'; return; }
+  errEl.textContent='';
+  btn.disabled=true; btn.style.display='none'; spin.classList.add('on');
+
+  const {data, error} = await sb.auth.signInWithPassword({email, password:pass});
+
+  if(error){
+    errEl.textContent = error.message==='Invalid login credentials'
+      ? 'Email o contraseña incorrectos.' : error.message;
+    btn.disabled=false; btn.style.display=''; spin.classList.remove('on');
+    return;
+  }
+  showPortal(data.user);
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  document.getElementById('portal').classList.remove('visible');
+  document.getElementById('auth-screen').classList.remove('hidden');
+  document.getElementById('auth-email').value='';
+  document.getElementById('auth-pass').value='';
+  document.getElementById('auth-err').textContent='';
+  document.getElementById('auth-btn').disabled=false;
+  document.getElementById('auth-btn').style.display='';
+  document.getElementById('auth-spinner').classList.remove('on');
+}
+
+function showPortal(user){
+  document.getElementById('auth-screen').classList.add('hidden');
+  document.getElementById('portal').classList.add('visible');
+  document.getElementById('portal-user').textContent = user.email;
+}
+
 function showTool(tool, btn){
-  document.querySelectorAll('.pframe').forEach(f => f.classList.remove('active'));
-  document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'));
-  document.getElementById('frame-' + tool).classList.add('active');
+  document.querySelectorAll('.pframe').forEach(f=>f.classList.remove('active'));
+  document.querySelectorAll('.ptab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('frame-'+tool).classList.add('active');
   btn.classList.add('active');
 }
-</script>
 
+// Restore session on load
+document.addEventListener('DOMContentLoaded', async ()=>{
+  const {data:{session}} = await sb.auth.getSession();
+  if(session) showPortal(session.user);
+});
+</script>
 </body>
 </html>

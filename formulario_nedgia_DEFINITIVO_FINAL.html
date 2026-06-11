@@ -224,6 +224,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
 .btn-resp-hist{flex:1;padding:8px;background:#1A3F6B;color:#fff;border:none;font-size:11px;font-weight:600;cursor:pointer;border-radius:3px;margin-top:6px;}
 .btn-resp-hist:hover{background:#0f2a4a;}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -591,6 +592,27 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
 </div>
 
 <script>
+// ── SUPABASE PORTAL ────────────────────────────────────────────────────
+const PORTAL_SB_URL  = 'https://fnghsgobmbqqhtctmxtd.supabase.co';
+const PORTAL_SB_ANON = 'sb_publishable_RKPh6n-ridhEgSmmLic7JQ_BIXRqRog';
+const portalSb = supabase.createClient(PORTAL_SB_URL, PORTAL_SB_ANON);
+const HIST_BUCKET = 'portal-history';
+const HIST_KEY    = 'ofertas_hist.json';
+let _histCache = [];
+
+async function _syncOfertasHist(){
+  const blob = new Blob([JSON.stringify(_histCache)], {type:'application/json'});
+  await portalSb.storage.from(HIST_BUCKET).upload(HIST_KEY, blob,
+    {upsert:true, contentType:'application/json'});
+}
+async function initOfertasHist(){
+  try {
+    const {data} = await portalSb.storage.from(HIST_BUCKET).download(HIST_KEY);
+    if(data){ const txt = await data.text(); _histCache = JSON.parse(txt)||[]; }
+  } catch(e){ _histCache=[]; }
+  renderHist();
+}
+
 // ============================================================
 // PRECIO DATA (exacto del Excel Precios_equipos_Alquiler_y_Comprobaciones.xlsx)
 // ============================================================
@@ -1873,13 +1895,12 @@ function updateProgress(){
 
 // ── HISTORIAL ──────────────────────────────────────────────────────────
 function loadHist(){
-  try{ return JSON.parse(localStorage.getItem('nedgia_hist')||'[]'); } catch(e){ return []; }
+  return _histCache;
 }
 function saveToHist(entry){
-  let hist = loadHist();
-  hist.unshift(entry);
-  if(hist.length > 30) hist = hist.slice(0,30);
-  localStorage.setItem('nedgia_hist', JSON.stringify(hist));
+  _histCache.unshift(entry);
+  if(_histCache.length > 30) _histCache = _histCache.slice(0,30);
+  _syncOfertasHist();
   renderHist();
 }
 function renderHist(){
@@ -1908,12 +1929,12 @@ function renderHist(){
     </div>`).join('');
 }
 function clearHist(){
-  if(confirm('¿Borrar todo el historial?')){ localStorage.removeItem('nedgia_hist'); renderHist(); }
+  if(confirm('¿Borrar todo el historial?')){ _histCache=[]; _syncOfertasHist(); renderHist(); }
 }
 function delHist(e,i){
   e.stopPropagation();
-  let hist = loadHist(); hist.splice(i,1);
-  localStorage.setItem('nedgia_hist', JSON.stringify(hist)); renderHist();
+  _histCache.splice(i,1);
+  _syncOfertasHist(); renderHist();
 }
 function loadFromHist(i){
   const h = loadHist()[i];
@@ -2689,6 +2710,7 @@ function closeRespModal(){
 document.addEventListener('DOMContentLoaded', function(){
   const rm = document.getElementById('resp-modal');
   if(rm) rm.addEventListener('click', function(e){ if(e.target===this) closeRespModal(); });
+  initOfertasHist();
 });
 
 function generarRespuesta(){
