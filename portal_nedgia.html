@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEDGIA · Portal U.M.</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;}
+
+#portal-bar{
+  height:50px;
+  background:#1A3F6B;
+  border-bottom:3px solid #F5A623;
+  display:flex;
+  align-items:center;
+  padding:0 20px;
+  gap:24px;
+  flex-shrink:0;
+  position:fixed;
+  top:0;left:0;right:0;
+  z-index:100;
+}
+
+.portal-logo{
+  font-family:'DM Mono',monospace;
+  font-size:15px;
+  font-weight:500;
+  color:#fff;
+  letter-spacing:.08em;
+  white-space:nowrap;
+}
+.portal-sep{
+  width:1px;height:24px;
+  background:rgba(255,255,255,.2);
+}
+.portal-tabs{
+  display:flex;
+  gap:4px;
+}
+.ptab{
+  height:34px;
+  padding:0 16px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.18);
+  color:rgba(255,255,255,.65);
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;
+  font-weight:500;
+  cursor:pointer;
+  border-radius:4px;
+  transition:all .15s;
+  white-space:nowrap;
+}
+.ptab:hover{
+  background:rgba(255,255,255,.15);
+  color:#fff;
+}
+.ptab.active{
+  background:rgba(245,166,35,.18);
+  border-color:#F5A623;
+  color:#F5A623;
+  font-weight:600;
+}
+
+.portal-badge{
+  margin-left:auto;
+  font-family:'DM Mono',monospace;
+  font-size:10px;
+  color:rgba(255,255,255,.4);
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+
+#frames{
+  position:fixed;
+  top:50px;left:0;right:0;bottom:0;
+}
+.pframe{
+  width:100%;
+  height:100%;
+  border:none;
+  display:none;
+}
+.pframe.active{
+  display:block;
+}
+</style>
+</head>
+<body>
+
+<div id="portal-bar">
+  <span class="portal-logo">NEDGIA</span>
+  <div class="portal-sep"></div>
+  <div class="portal-tabs">
+    <button class="ptab active" id="tab-ofertas" onclick="showTool('ofertas', this)">📋 Ofertas U-Medición</button>
+    <button class="ptab" id="tab-contratos" onclick="showTool('contratos', this)">📄 Contratos de Alquiler</button>
+  </div>
+  <span class="portal-badge">USO INTERNO</span>
+</div>
+
+<div id="frames">
+  <iframe class="pframe active" id="frame-ofertas"   src="formulario_nedgia_DEFINITIVO_FINAL.html"></iframe>
+  <iframe class="pframe"        id="frame-contratos" src="CONTRATOS_NEDGIA.html"></iframe>
+</div>
+
+<script>
+function showTool(tool, btn){
+  document.querySelectorAll('.pframe').forEach(f => f.classList.remove('active'));
+  document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'));
+  document.getElementById('frame-' + tool).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+
+</body>
+</html>

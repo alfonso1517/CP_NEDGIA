@@ -1,0 +1,3169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nedgia · Herramienta Ofertas U-Medición</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap');
+:root{
+  --bg:#f0f2f5;--surface:#fff;--s2:#f4f6f9;--border:#ccd6e8;--border2:#9ab0cc;
+  --accent:#1A3F6B;--accent-bg:#e8eef7;--accent-border:#9ab0cc;
+  --text:#1A3F6B;--muted:#5a7090;--label:#1A3F6B;
+  --green:#1a6038;--green-bg:#e5f2eb;--green-b:#aed4be;
+  --red:#b01e1e;--red-bg:#fdf0f0;--red-b:#e8b8b8;
+  --blue:#1A3F6B;--blue-bg:#e8eef7;--blue-b:#9ab8d8;
+  --gold:#6e5810;--gold-bg:#fdf8e5;--gold-b:#e0cc80;
+  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
+  --r:4px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;}
+
+/* HEADER */
+.hdr{background:#1A3F6B;color:#fff;padding:12px 36px;display:flex;align-items:center;gap:20px;border-bottom:4px solid #F5A623;}
+.hdr-logo{font-size:21px;font-weight:600;font-family:var(--mono);letter-spacing:.06em;}
+.hdr-sub{font-size:12px;color:#948d84;margin-top:2px;}
+.hdr-badge{margin-left:auto;background:#F5A623;color:#1A3F6B;font-size:10px;font-family:var(--mono);padding:4px 10px;letter-spacing:.1em;text-transform:uppercase;border-radius:2px;}
+
+/* LAYOUT */
+.wrap{max-width:1060px;margin:0 auto;padding:28px 20px 60px;display:grid;grid-template-columns:1fr 300px;gap:22px;align-items:start;}
+.main{display:flex;flex-direction:column;gap:18px;}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.ch{padding:11px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:#edf1f8;}
+.ch .num{width:22px;height:22px;background:#1A3F6B;color:#fff;font-family:var(--mono);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;border-radius:3px;flex-shrink:0;}
+.ch h2{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text);}
+.ch .ch-sub{font-size:11px;color:var(--muted);margin-left:4px;font-weight:400;text-transform:none;letter-spacing:0;}
+.cb{padding:16px 18px;}
+
+/* FIELDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;}
+.s2{grid-column:span 2;}.s3{grid-column:span 3;}
+.f{display:flex;flex-direction:column;gap:4px;}
+.f label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--label);}
+.f label .opt{font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;}
+.f input,.f select{height:34px;padding:0 10px;border:1px solid var(--border);background:var(--s2);font-family:var(--sans);font-size:13px;color:var(--text);border-radius:var(--r);outline:none;transition:border-color .15s,background .15s;}
+.f input:focus,.f select:focus{border-color:var(--accent);background:#fff;}
+.f input[readonly]{background:var(--s2);color:var(--accent);font-family:var(--mono);font-weight:500;cursor:default;}
+
+/* EQUIP SELECTOR */
+.equip-sel{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:0;}
+.es-btn{padding:14px 10px;border:1.5px solid var(--border);background:var(--s2);cursor:pointer;text-align:center;border-radius:var(--r);transition:all .15s;font-family:var(--sans);}
+.es-btn:hover{border-color:var(--accent);}
+.es-btn.active{border-color:#1A3F6B;background:#e8eef7;}
+.es-icon{font-size:24px;display:block;margin-bottom:5px;}
+.es-name{font-size:12px;font-weight:600;color:var(--text);display:block;}
+.es-desc{font-size:11px;color:var(--muted);display:block;margin-top:2px;}
+
+/* PROP TOGGLE / YES-NO */
+.tog{display:flex;gap:5px;}
+.tog-btn{flex:1;height:34px;border:1px solid var(--border);background:var(--s2);font-family:var(--sans);font-size:12px;font-weight:500;cursor:pointer;border-radius:var(--r);transition:all .14s;color:var(--muted);}
+.tog-btn:hover{border-color:var(--border2);}
+.tog-btn.prop-a{background:#e8eef7;border-color:#1A3F6B;color:#1A3F6B;font-weight:600;}
+.tog-btn.yn-y{background:var(--red-bg);border-color:var(--red-b);color:var(--red);font-weight:600;}
+.tog-btn.yn-n{background:var(--green-bg);border-color:var(--green-b);color:var(--green);font-weight:600;}
+
+/* EQUIP BLOCK */
+.eb{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:10px;}
+.eb:last-child{margin-bottom:0;}
+.eb-h{padding:9px 14px;background:var(--s2);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);}
+.eb-title{font-size:12px;font-weight:600;flex:1;}
+.eb-price{font-size:12px;font-family:var(--mono);font-weight:500;color:var(--accent);}
+.eb-b{padding:14px;}
+
+/* ALERTS */
+.al{padding:9px 13px;border-radius:var(--r);font-size:12px;line-height:1.5;margin-top:8px;display:flex;gap:8px;}
+.al-i{flex-shrink:0;font-size:13px;margin-top:1px;}
+.al.warn{background:var(--gold-bg);border:1px solid var(--gold-b);color:var(--gold);}
+.al.info{background:var(--blue-bg);border:1px solid var(--blue-b);color:var(--blue);}
+.al.ok{background:var(--green-bg);border:1px solid var(--green-b);color:var(--green);}
+.al.err{background:var(--red-bg);border:1px solid var(--red-b);color:var(--red);}
+.note{font-size:11px;color:var(--muted);padding:7px 10px;background:var(--s2);border-left:3px solid var(--border2);margin-top:9px;line-height:1.5;border-radius:0 var(--r) var(--r) 0;}
+
+/* DIAGNOSIS */
+.diag-item{border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:8px;}
+.diag-item:last-child{margin-bottom:0;}
+.diag-item.avail{border-color:var(--green-b);}
+.diag-item.rec{border-color:var(--accent);border-width:2px;}
+.diag-item.unavail{border-color:var(--red-b);opacity:.65;}
+.dh{padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.dh input[type=radio]{accent-color:var(--accent);width:15px;height:15px;cursor:pointer;flex-shrink:0;}
+.dh input[type=radio]:disabled{cursor:not-allowed;}
+.dlabel{font-size:13px;font-weight:600;flex:1;}
+.dbadge{font-size:10px;font-family:var(--mono);padding:2px 7px;border-radius:2px;font-weight:500;white-space:nowrap;}
+.dbadge.brec{background:var(--accent);color:#fff;}
+.dbadge.bok{background:var(--green-bg);color:var(--green);border:1px solid var(--green-b);}
+.dbadge.bno{background:var(--red-bg);color:var(--red);border:1px solid var(--red-b);}
+.dbadge.binfo{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-b);}
+.ddesc{padding:0 14px 10px;font-size:12px;color:var(--muted);line-height:1.55;}
+.dsubopts{padding:0 14px 12px;}
+.dsubopt{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-top:1px solid var(--border);font-size:12px;cursor:pointer;}
+.dsubopt label{cursor:pointer;line-height:1.5;}
+
+/* SIDEBAR */
+.sidebar{display:flex;flex-direction:column;gap:14px;}
+.rc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);position:sticky;top:20px;}
+.rc-hdr{background:#1A3F6B;color:#fff;padding:11px 16px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-family:var(--mono);}
+.rc-body{padding:12px 16px;}
+.rc-item{display:flex;justify-content:space-between;gap:6px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.rc-item:last-child{border-bottom:none;}
+.rc-name{color:var(--muted);flex:1;line-height:1.4;}
+.rc-p{font-family:var(--mono);font-weight:500;white-space:nowrap;}
+.rc-empty{text-align:center;font-size:11px;color:var(--muted);padding:16px 0;font-style:italic;}
+.rc-total{padding:11px 16px;border-top:2px solid var(--text);display:flex;justify-content:space-between;align-items:center;}
+.rc-tl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+.rc-ta{font-family:var(--mono);font-size:19px;font-weight:500;color:var(--accent);}
+.rc-punt{padding:10px 16px;border-top:1px solid var(--border);}
+.rc-pl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:5px;}
+.btn-gen{width:100%;padding:13px;background:#1A3F6B;color:#fff;border:none;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .15s;}
+.btn-gen:hover{background:#0f2a4a;}
+.btn-gen:disabled{background:var(--border2);cursor:not-allowed;}
+.btn-reset{width:100%;padding:10px;background:transparent;color:var(--red);border:1.5px solid var(--red-b);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;margin-top:6px;}
+.btn-reset:hover{background:var(--red-bg);border-color:var(--red);}
+
+/* EMAIL */
+.email-w{display:none;margin-top:18px;}
+.email-w.open{display:block;}
+.email-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.email-hdr{background:var(--green);color:#fff;padding:11px 16px;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;}
+.btn-copy{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;font-family:var(--mono);font-size:10px;padding:3px 10px;cursor:pointer;border-radius:2px;}
+.email-meta{padding:11px 16px;background:var(--s2);border-bottom:1px solid var(--border);font-size:12px;line-height:2.2;}
+.email-meta b{color:var(--muted);font-weight:500;display:inline-block;width:58px;}
+.email-body{padding:18px;font-size:13px;line-height:1.8;white-space:pre-wrap;}
+
+.sep{height:1px;background:var(--border);margin:12px 0;}
+.tag{display:inline-block;font-size:10px;font-family:var(--mono);padding:2px 6px;border-radius:2px;border:1px solid;}
+.tag-o{background:var(--accent-bg);color:var(--accent);border-color:var(--accent-border);}
+.tag-b{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-b);}
+
+@media(max-width:760px){
+  .wrap{grid-template-columns:1fr;}
+  .g3,.g4{grid-template-columns:1fr 1fr;}.s3{grid-column:span 2;}
+  .equip-sel{grid-template-columns:1fr;}
+  .rc{position:static;}
+}
+
+/* PROGRESS BAR */
+.progress-bar{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--surface);}
+.pb-step{flex:1;padding:8px 6px;text-align:center;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--s2);border-right:1px solid var(--border);transition:all .2s;cursor:default;}
+.pb-step:last-child{border-right:none;}
+.pb-step.done{background:var(--green-bg);color:var(--green);}
+.pb-step.active{background:#1A3F6B;color:#fff;}
+.pb-step .pb-num{display:block;font-size:13px;font-weight:700;margin-bottom:1px;}
+
+/* HISTORIAL */
+.hist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-top:14px;}
+.hist-hdr{background:#1A3F6B;color:#fff;padding:10px 16px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;font-family:var(--mono);display:flex;justify-content:space-between;align-items:center;}
+.hist-body{max-height:280px;overflow-y:auto;}
+.hist-item{padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;}
+.hist-item:hover{background:var(--s2);}
+.hist-item:last-child{border-bottom:none;}
+.hist-item-top{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.hist-item-cups{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--text);}
+.hist-item-date{font-size:10px;color:var(--muted);}
+.hist-item-desc{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4;}
+.hist-empty{text-align:center;font-size:11px;color:var(--muted);padding:20px;font-style:italic;}
+.btn-hist-clear{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#eeeae4;font-family:var(--mono);font-size:10px;padding:2px 8px;cursor:pointer;border-radius:2px;}
+.btn-hist-del{background:none;border:none;color:var(--red);font-size:13px;cursor:pointer;padding:0 4px;line-height:1;}
+
+/* EMAIL PREVIEW HTML */
+.email-preview-html{padding:20px 24px;font-family:Arial,sans-serif;font-size:13px;line-height:1.7;color:#1c1a17;background:#fff;}
+.email-preview-html p{margin:0 0 10px;}
+.email-preview-html .etable{width:100%;border-collapse:collapse;margin:12px 0 16px;}
+.email-preview-html .etable th{background:#1A4A88;color:#fff;padding:7px 12px;text-align:left;font-size:12px;font-weight:600;border:1px solid #2a4a8a;}
+.email-preview-html .etable td{border:1px solid #c8d8f0;padding:7px 12px;font-size:12px;}
+.email-preview-html .etable tr:nth-child(even) td{background:#edf2fc;}
+.email-preview-html .opcion-lbl{font-weight:700;color:#1C1A17;margin-top:14px;margin-bottom:4px;}
+.email-preview-html .nota{font-size:11px;color:#726b62;font-style:italic;margin:4px 0 12px;}
+
+/* COPY BUTTONS ROW */
+.copy-row{display:flex;gap:8px;padding:12px 16px;border-top:2px solid var(--border);background:var(--s2);}
+.btn-copy-txt{flex:1;padding:10px 8px;background:var(--surface);border:1.5px solid var(--border);color:var(--text);font-family:var(--sans);font-size:12px;font-weight:600;letter-spacing:.02em;cursor:pointer;border-radius:var(--r);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-copy-txt:hover{border-color:var(--accent);color:var(--accent);background:#fff;}
+.btn-copy-txt.copied{background:var(--green-bg);border-color:var(--green-b);color:var(--green);}
+
+/* FICHA CONTRATO */
+.ficha-wrap{margin-top:20px;border:2px solid #1A4A88;border-radius:3px;overflow:hidden;font-family:Arial,sans-serif;}
+.ficha-titulo{background:#1A4A88;color:#fff;text-align:center;padding:8px 12px;font-size:13px;font-weight:700;letter-spacing:.03em;}
+.ficha-subtitulo{background:#d0dff5;text-align:center;padding:5px 12px;font-size:11px;font-style:italic;color:#1A4A88;font-weight:600;border-bottom:1px solid #1A4A88;}
+.ficha-table{width:100%;border-collapse:collapse;}
+.ficha-table td{border:1px solid #1A4A88;padding:5px 8px;font-size:12px;vertical-align:middle;}
+.ficha-table .flabel{background:#d0dff5;font-weight:700;color:#1A4A88;width:22%;white-space:nowrap;}
+.ficha-table .fval{background:#fff;min-width:80px;}
+.ficha-table .fval[contenteditable=true]:empty:before{content:attr(data-ph);color:#aaa;font-style:italic;}
+.ficha-table .fval[contenteditable=true]:focus{outline:2px solid #1A4A88;background:#f0f5ff;}
+.ficha-table .fval.prefilled{background:#f0f5ff;color:#1A4A88;font-weight:500;}
+
+/* MULTI-EQUIP */
+.btn-add-equip{display:flex;align-items:center;gap:7px;padding:9px 16px;background:var(--surface);border:1.5px dashed var(--border2);color:var(--accent);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;border-radius:var(--r);transition:all .15s;width:100%;}
+.btn-add-equip:hover{border-color:var(--accent);background:var(--accent-bg);}
+.extra-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;position:relative;}
+.extra-card-hdr{padding:10px 18px;background:var(--s2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.extra-card-num{width:22px;height:22px;background:var(--accent);color:#fff;font-family:var(--mono);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;border-radius:3px;flex-shrink:0;}
+.btn-remove-equip{margin-left:auto;background:none;border:1px solid var(--red-b);color:var(--red);font-size:11px;padding:3px 8px;cursor:pointer;border-radius:var(--r);font-family:var(--sans);}
+.btn-remove-equip:hover{background:var(--red-bg);}
+
+/* RESPUESTA ACEPTACION */
+.resp-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:3000;display:flex;align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto;}
+.resp-box{background:#fff;border-radius:6px;max-width:600px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.25);overflow:hidden;}
+.resp-hdr{background:#1A3F6B;color:#fff;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;font-family:monospace;font-size:12px;font-weight:600;letter-spacing:.05em;}
+.resp-body{padding:18px 20px;display:flex;flex-direction:column;gap:12px;}
+.resp-field{display:flex;flex-direction:column;gap:4px;}
+.resp-field label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#1A3F6B;}
+.resp-field input,.resp-field select,.resp-field textarea{padding:8px 10px;border:1px solid #ccd6e8;background:#f4f6f9;font-family:Arial,sans-serif;font-size:13px;color:#1c1a17;border-radius:4px;outline:none;}
+.resp-field input:focus,.resp-field select:focus,.resp-field textarea:focus{border-color:#1A3F6B;background:#fff;}
+.resp-field textarea{resize:vertical;min-height:60px;}
+.resp-foot{padding:12px 20px;background:#f4f6f9;border-top:1px solid #ccd6e8;display:flex;gap:8px;}
+.btn-gen-resp{flex:1;padding:10px;background:#1A3F6B;color:#fff;border:none;font-size:12px;font-weight:700;border-radius:4px;cursor:pointer;}
+.btn-gen-resp:hover{background:#0f2a4a;}
+.btn-cancel-resp{padding:10px 14px;background:#fff;border:1.5px solid #ccd6e8;font-size:12px;font-weight:600;border-radius:4px;cursor:pointer;color:#1c1a17;}
+.btn-resp-hist{flex:1;padding:8px;background:#1A3F6B;color:#fff;border:none;font-size:11px;font-weight:600;cursor:pointer;border-radius:3px;margin-top:6px;}
+.btn-resp-hist:hover{background:#0f2a4a;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <img src="data:image/png;base64,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" alt="Nedgia Grupo Naturgy"
+       style="height:46px;width:auto;flex-shrink:0;filter:brightness(0) invert(1);">
+  <div style="width:1px;height:38px;background:rgba(255,255,255,.3);margin:0 8px;flex-shrink:0;"></div>
+  <div>
+    <div class="hdr-sub" style="margin-top:0;font-size:13px;color:rgba(255,255,255,.9);font-weight:500;">Unidad de Medición · Herramienta de Ofertas</div>
+  </div>
+  <div class="hdr-badge">USO INTERNO</div>
+</div>
+
+<div class="wrap">
+<div class="main">
+<!-- PROGRESS BAR -->
+<div class="progress-bar" id="prog-bar">
+  <div class="pb-step active" id="pb1"><span class="pb-num">1</span>Cliente</div>
+  <div class="pb-step" id="pb2"><span class="pb-num">2</span>Equipos</div>
+  <div class="pb-step" id="pb3"><span class="pb-num">3</span>Datos</div>
+  <div class="pb-step" id="pb4"><span class="pb-num">4</span>Diagnóstico</div>
+  <div class="pb-step" id="pb5"><span class="pb-num">5</span>Correo</div>
+</div>
+
+
+
+<!-- PASO 1: CLIENTE -->
+<div class="card">
+  <div class="ch"><div class="num">1</div><h2>Cliente</h2></div>
+  <div class="cb">
+    <div class="g4">
+      <div class="f">
+        <label>CUPS <span style="color:var(--red);font-size:9px;">*</span></label>
+        <input id="cups" placeholder="ES0217901000000000TR">
+      </div>
+      <div class="f">
+        <label>OC <span style="color:var(--red);font-size:9px;">*</span></label>
+        <input id="oc" placeholder="4396">
+      </div>
+
+      <div id="consumo-field" style="display:none;">
+        <input id="consumo" type="hidden">
+      </div>
+      <div class="f s2">
+        <label>Presión red entrada <span class="opt">(opcional)</span></label>
+        <select id="presion_red" onchange="onPresionChange()">
+          <option value="">— Seleccionar —</option>
+          <option value="AP">AP — Alta Presión</option>
+          <option value="MP">MP — Media Presión</option>
+          <option value="BP">BP — Baja Presión</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>Empresa <span class="opt">(opcional)</span></label>
+        <input id="empresa" placeholder="Nombre empresa">
+      </div>
+      <div class="f">
+        <label>Persona contacto <span class="opt">(opcional)</span></label>
+        <input id="contacto" placeholder="Nombre contacto">
+      </div>
+      <div class="f">
+        <label>¿Telemedida obligatoria?</label>
+        <div class="tog">
+          <button class="tog-btn" id="tele-si" onclick="setTele('SI')">📡 Sí</button>
+          <button class="tog-btn" id="tele-no" onclick="setTele('NO')">✗ No</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PASO 2: EQUIPOS -->
+<div class="card">
+  <div class="ch"><div class="num">2</div><h2>¿Con qué equipos trabajamos?</h2></div>
+  <div class="cb">
+    <div class="equip-sel">
+      <button class="es-btn" id="sel-co" onclick="toggleEquipSel('co')">
+        <span class="es-icon">🔢</span>
+        <span class="es-name">Contador (CO)</span>
+        <span class="es-desc">Solo contador</span>
+      </button>
+      <button class="es-btn" id="sel-cr" onclick="toggleEquipSel('cr')">
+        <span class="es-icon">⚙️</span>
+        <span class="es-name">Conversor/Corrector (CR)</span>
+        <span class="es-desc">Solo conversor</span>
+      </button>
+      <button class="es-btn" id="sel-co-cr" onclick="toggleEquipSel('co-cr')">
+        <span class="es-icon">🔢⚙️</span>
+        <span class="es-name">Contador + Conversor</span>
+        <span class="es-desc">Ambos equipos</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PASO 3a: CONTADOR -->
+<div class="card" id="card-co" style="display:none;">
+  <div class="ch"><div class="num">3A</div><h2>Datos del Contador (CO)</h2></div>
+  <div class="cb">
+    <div class="g3" style="margin-bottom:12px;">
+      <div class="f">
+        <label>Propiedad <span style="color:var(--red);font-size:9px;">*</span></label>
+        <div class="tog">
+          <button class="tog-btn" id="co-p-cli" onclick="setProp('co','CLI')">👤 Cliente</button>
+          <button class="tog-btn" id="co-p-alq" onclick="setProp('co','ALQ')">🏢 Alquiler Nedgia</button>
+        </div>
+      </div>
+      <div class="f">
+        <label>Tecnología <span style="color:var(--red);font-size:9px;">*</span></label>
+        <select id="co-tech" onchange="onCoTech()">
+          <option value="">— Seleccionar —</option>
+          <option value="MEMBRANA">Membrana deformable</option>
+          <option value="PISTONES">Pistones (despl. rotativo)</option>
+          <option value="TURBINA">Turbina</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>Calibre</label>
+        <select id="co-cal" onchange="onCoCal()"><option value="">— Primero selecciona tecnología —</option></select>
+      </div>
+      <div class="f">
+        <label>DN (Diámetro Nominal)</label>
+        <select id="co-dn" onchange="onCoDN()"><option value="">—</option></select>
+      </div>
+      <div class="f">
+        <label>PN (Presión Nominal)</label>
+        <select id="co-pn" onchange="recalc()"><option value="">—</option></select>
+      </div>
+      <div class="f">
+        <label>Nº Serie</label>
+        <input id="co-serie" placeholder="8017000784">
+      </div>
+
+      <div class="f">
+        <label>¿Averiado?</label>
+        <div class="tog">
+          <button class="tog-btn" id="co-av-si" onclick="setYN('co-av','SI')">⚠ Sí</button>
+          <button class="tog-btn" id="co-av-no" onclick="setYN('co-av','NO')">✓ No</button>
+        </div>
+      </div>
+      <div class="f">
+        <label>¿Caducado?</label>
+        <div class="tog">
+          <button class="tog-btn" id="co-cad-si" onclick="setYN('co-cad','SI')">⚠ Sí</button>
+          <button class="tog-btn" id="co-cad-no" onclick="setYN('co-cad','NO')">✓ No</button>
+        </div>
+      </div>
+      <div class="f">
+        <label>¿Prueba en serie? <span class="opt">(opcional)</span></label>
+        <div class="tog">
+          <button class="tog-btn" id="co-ps-si" onclick="setYN('co-ps','SI')">✓ Sí</button>
+          <button class="tog-btn" id="co-ps-no" onclick="setYN('co-ps','NO')">✗ No</button>
+        </div>
+      </div>
+    </div>
+      <div class="f s3" style="margin-top:4px;">
+        <label>¿Cumple alguna de estas condiciones?
+          <span class="opt" style="font-size:10px;display:block;font-weight:400;margin-top:2px;line-height:1.4;">
+            Dinámica ampliada (superior a 1:20) &nbsp;/&nbsp; Salida de pulsos en alta frecuencia &nbsp;/&nbsp; Presión de trabajo &gt; 35 bar &nbsp;/&nbsp; Calibre superior a G-2500 &nbsp;/&nbsp; DN-200 o mayor con PN-10
+          </span>
+        </label>
+        <div class="tog">
+          <button class="tog-btn" id="co-exc-si" onclick="setYN('co-exc','SI')">⛔ Sí</button>
+          <button class="tog-btn" id="co-exc-no" onclick="setYN('co-exc','NO')">✓ No</button>
+        </div>
+      </div>
+      <div class="f s2">
+        <label>¿Contador sobredimensionado?
+          <span class="opt" style="font-size:10px;display:block;font-weight:400;margin-top:2px;">
+            Se instalará un nuevo contador de calibre diferente
+          </span>
+        </label>
+        <div class="tog">
+          <button class="tog-btn" id="co-sob-si" onclick="setYN('co-sob','SI')">📐 Sí</button>
+          <button class="tog-btn" id="co-sob-no" onclick="setYN('co-sob','NO')">✓ No</button>
+        </div>
+      </div>
+      <div class="f s2" id="sob-nuevo-wrap" style="display:none;">
+        <label>Nuevo contador a instalar en alquiler <span style="color:var(--red);font-size:9px;">*</span></label>
+        <div class="g4">
+          <div class="f">
+            <label>Tecnología nueva</label>
+            <select id="sob-tech" onchange="onSobTech()">
+              <option value="">— Seleccionar —</option>
+              <option value="MEMBRANA">Membrana</option>
+              <option value="PISTONES">Pistones</option>
+              <option value="TURBINA">Turbina</option>
+            </select>
+          </div>
+          <div class="f">
+            <label>Calibre nuevo</label>
+            <select id="sob-cal" onchange="onSobCal()"><option value="">—</option></select>
+          </div>
+          <div class="f">
+            <label>DN nuevo</label>
+            <select id="sob-dn" onchange="onSobDN()"><option value="">—</option></select>
+          </div>
+          <div class="f">
+            <label>PN nuevo</label>
+            <select id="sob-pn" onchange="recalc()"><option value="">—</option></select>
+          </div>
+        </div>
+      </div>
+    <div id="co-alerts"></div>
+  </div>
+</div>
+
+<!-- EXTRA CONTADORES -->
+<div id="extra-co-container" style="display:flex;flex-direction:column;gap:14px;"></div>
+<div id="btn-add-co-wrap" style="display:none;">
+  <button class="btn-add-equip" onclick="addExtraCO()">
+    <span style="font-size:18px;line-height:1;">＋</span> Añadir otro contador
+  </button>
+</div>
+
+<!-- PASO 3b: CONVERSOR -->
+<div class="card" id="card-cr" style="display:none;">
+  <div class="ch"><div class="num" id="cr-num">3B</div><h2>Datos del Conversor / Corrector (CR)</h2></div>
+  <div class="cb">
+    <div class="g3" style="margin-bottom:12px;">
+      <div class="f">
+        <label>Propiedad <span style="color:var(--red);font-size:9px;">*</span></label>
+        <div class="tog">
+          <button class="tog-btn" id="cr-p-cli" onclick="setProp('cr','CLI')">👤 Cliente</button>
+          <button class="tog-btn" id="cr-p-alq" onclick="setProp('cr','ALQ')">🏢 Alquiler Nedgia</button>
+        </div>
+      </div>
+      <div class="f">
+        <label>Tipo</label>
+        <select id="cr-tipo" onchange="recalc()">
+          <option value="PTZ">PTZ (Presión + Temperatura + Compresibilidad)</option>
+          <option value="PT">PT (solo Presión + Temperatura)</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>Nº Serie</label>
+        <input id="cr-serie" placeholder="3403576070">
+      </div>
+      <div class="f">
+        <label>¿Computador de caudal?
+          <span class="opt" style="font-size:10px;display:block;font-weight:400;margin-top:2px;">Nedgia no ofrece alquiler de esta tipología</span>
+        </label>
+        <div class="tog">
+          <button class="tog-btn" id="cr-comp-si" onclick="setCRComp('SI')">⛔ Sí</button>
+          <button class="tog-btn" id="cr-comp-no" onclick="setCRComp('NO')">✓ No</button>
+        </div>
+      </div>
+      <div class="f">
+        <label>¿Averiado?</label>
+        <div class="tog">
+          <button class="tog-btn" id="cr-av-si" onclick="setYN('cr-av','SI')">⚠ Sí</button>
+          <button class="tog-btn" id="cr-av-no" onclick="setYN('cr-av','NO')">✓ No</button>
+        </div>
+      </div>
+      <div class="f">
+        <label>¿Caducado?</label>
+        <div class="tog">
+          <button class="tog-btn" id="cr-cad-si" onclick="setYN('cr-cad','SI')">⚠ Sí</button>
+          <button class="tog-btn" id="cr-cad-no" onclick="setYN('cr-cad','NO')">✓ No</button>
+        </div>
+      </div>
+      <div class="f">
+        <label>Consumo anual (GWh/año) <span style="color:var(--red);font-size:9px;">*</span></label>
+        <input id="cr-consumo" type="number" placeholder="60" step="0.1" min="0" oninput="syncConsumo('cr')" value="">
+      </div>
+    </div>
+    <div id="cr-alerts"></div>
+  </div>
+</div>
+
+<!-- EXTRA CONVERSORES -->
+<div id="extra-cr-container" style="display:flex;flex-direction:column;gap:14px;"></div>
+<div id="btn-add-cr-wrap" style="display:none;">
+  <button class="btn-add-equip" onclick="addExtraCR()">
+    <span style="font-size:18px;line-height:1;">＋</span> Añadir otro conversor
+  </button>
+</div>
+
+<!-- PASO 4: DIAGNÓSTICO + REMOTA -->
+<div class="card" id="card-diag" style="display:none;">
+  <div class="ch"><div class="num" id="diag-num">4</div><h2>Resumen del diagnóstico</h2><span class="ch-sub">El correo incluirá todas las opciones disponibles</span></div>
+  <div class="cb">
+    <div id="diag-opts"></div>
+    <!-- Remota -->
+    <div id="rem-wrap" style="display:none;margin-top:14px;">
+      <div class="sep"></div>
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--label);margin-bottom:10px;">Unidad Remota Telemedida <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;">(opcional — añadir a la oferta)</span></div>
+      <div class="g2">
+        <div class="f">
+          <label>Incluir remota</label>
+          <div class="tog">
+            <button class="tog-btn" id="rem-si" onclick="setRemota(true)">📡 Sí, incluir</button>
+            <button class="tog-btn" id="rem-no" onclick="setRemota(false)">✗ No</button>
+          </div>
+        </div>
+        <div class="f" id="rem-cfg-wrap" style="display:none;">
+          <label>Configuración</label>
+          <select id="rem-cfg" onchange="onRemotaCfg()"><option value="">— Seleccionar —</option></select>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="rc">
+    <div class="rc-hdr">Resumen Presupuesto</div>
+    <div class="rc-body" id="rc-body"><div class="rc-empty">Selecciona equipos y oferta</div></div>
+    <div class="rc-total">
+      <div class="rc-tl">Total mensual<br><span style="font-size:10px;font-weight:400;">sin IVA</span></div>
+      <div class="rc-ta" id="rc-total">—</div>
+    </div>
+    <div class="rc-punt" id="rc-punt" style="display:none;">
+      <div class="rc-pl">Costes puntuales (sin IVA)</div>
+      <div id="rc-punt-body"></div>
+    </div>
+    <button class="btn-gen" id="btn-gen" onclick="genEmail()" disabled>✉ Generar Borrador Correo</button>
+    <button class="btn-reset" onclick="resetAll()">🗑 Vaciar todos los campos</button>
+  </div>
+</div>
+
+
+  <!-- HISTORIAL -->
+  <div class="hist-card">
+    <div class="hist-hdr">
+      <span>📋 Historial de consultas</span>
+      <button class="btn-hist-clear" onclick="clearHist()">Borrar todo</button>
+    </div>
+    <div style="padding:7px 10px;background:var(--s2);border-bottom:1px solid var(--border);">
+      <input id="hist-search" type="text" placeholder="🔍 Buscar por OC, CUPS o empresa..." 
+        oninput="renderHist()"
+        style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:var(--r);font-size:11px;background:#fff;outline:none;box-sizing:border-box;">
+    </div>
+    <div class="hist-body" id="hist-body">
+      <div class="hist-empty">Sin consultas guardadas</div>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<!-- EMAIL -->
+<div style="max-width:1060px;margin:0 auto;padding:0 20px 60px;">
+  <div class="email-w" id="email-w">
+    <div class="email-card">
+      <div class="email-hdr">
+        <span>✉ Borrador listo — umedicion@nedgia.es</span>
+      </div>
+      <div class="email-meta">
+        <b>Para:</b> umedicion@nedgia.es<br>
+        <b>Asunto:</b> <span id="e-asunto"></span>
+      </div>
+      <!-- HTML Preview -->
+      <div class="email-preview-html" id="e-body-html"></div>
+      <!-- Hidden plain text for copy -->
+      <div id="e-body" style="display:none;"></div>
+      <div class="copy-row">
+        <button class="btn-copy-txt" onclick="copiarHtml()">📋 Copiar para Outlook (con tablas)</button>
+        <button class="btn-copy-txt" onclick="copiarTexto()">📄 Copiar como texto plano</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// PRECIO DATA (exacto del Excel Precios_equipos_Alquiler_y_Comprobaciones.xlsx)
+// ============================================================
+const PRECIOS_ALQ = {
+  MEMBRANA: {
+    'G-1,6': {'3/4"':    {'0.5': {a:0.58,    c:null}}},
+    'G-2,5': {'7/8"':    {'0.5': {a:0.58,    c:null}}},
+    'G-4':   {'7/8"':    {'0.5': {a:0.58,    c:null}}},
+    'G-6':   {'1 1/4"':  {'0.5': {a:0.61,    c:null}}},
+    'G-16':  {'50':  {'PN-10, PN-16 y PN-20': {a:4.8531,  c:132.9723}}},
+    'G-25':  {'50':  {'PN-10, PN-16 y PN-20': {a:9.412,   c:135.4205}}},
+    'G-40':  {'50':  {'PN-10, PN-16 y PN-20': {a:19.2275, c:151.2822}}},
+    'G-65':  {'50':  {'PN-10, PN-16 y PN-20': {a:26.03,   c:163.4818}}},
+    'G-100': {'80':  {'PN-10, PN-16 y PN-20': {a:40.8288, c:186.6674}}},
+  },
+  PISTONES: {
+    'G-16':  {'50':  {'PN-10, PN-16 y PN-20': {a:4.8531,  c:150.0684}}},
+    'G-25':  {'50':  {'PN-10, PN-16 y PN-20': {a:9.412,   c:152.5063}}},
+    'G-40':  {'50':  {'PN-10, PN-16 y PN-20': {a:19.2275, c:153.72}}},
+    'G-65':  {'50':  {'PN-10, PN-16 y PN-20': {a:26.03,   c:154.9441}}},
+    'G-100': {
+      '50':  {'PN-10, PN-16 y PN-20': {a:31.7423, c:162.2577}},
+      '80':  {'PN-10, PN-16 y PN-20': {a:31.7423, c:162.2577}},
+    },
+    'G-160': {
+      '80':  {'PN-10, PN-16 y PN-20': {a:41.5875, c:183.0054}},
+      '100': {'PN-10, PN-16 y PN-20': {a:41.5888, c:183.0054}},
+    },
+    'G-250': {'100': {'PN-10, PN-16 y PN-20': {a:46.2882, c:204.9669}}},
+    'G-400': {
+      '100': {'PN-10, PN-16 y PN-20': {a:94.2466, c:439.9662}},
+      '150': {'PN-10, PN-16 y PN-20': {a:94.2466, c:439.9662}},
+    },
+  },
+  TURBINA: {
+    'G-65':  {'50':  {'PN-10, PN-16 y PN-20': {a:25.991,  c:158.6061}}},
+    'G-100': {'80':  {
+      'PN-10, PN-16 y PN-20': {a:31.6025, c:159.8302},
+      'PN-50':                {a:44.9915, c:159.8302},
+    }},
+    'G-160': {
+      '80':  {'PN-10, PN-16 y PN-20': {a:31.6092, c:159.8302}, 'PN-50': {a:48.9854, c:159.8302}},
+      '100': {'PN-10, PN-16 y PN-20': {a:34.5346, c:164.7267}, 'PN-50': {a:61.9631, c:164.7267}},
+    },
+    'G-250': {
+      '80':  {'PN-10, PN-16 y PN-20': {a:33.3416, c:178.1194}, 'PN-50': {a:52.9067, c:178.1194}},
+      '100': {'PN-10, PN-16 y PN-20': {a:36.2152, c:183.0054}, 'PN-50': {a:60.9257, c:183.0054}},
+    },
+    'G-400': {
+      '100': {'PN-10, PN-16 y PN-20': {a:37.5742, c:185.4433}, 'PN-50': {a:64.2454, c:185.4433}},
+      '150': {'PN-10, PN-16 y PN-20': {a:47.2011, c:202.5187}, 'PN-50': {a:76.1857, c:202.5187}},
+    },
+    'G-650': {
+      '150': {'PN-10, PN-16 y PN-20': {a:48.9232, c:202.5187}, 'PN-50': {a:78.9555, c:202.5187}},
+      '200': {'PN-10, PN-16 y PN-20': {a:81.5282, c:407.1744}, 'PN-50': {a:106.5085,c:407.1744}},
+    },
+    'G-1000': {
+      '150': {'PN-10, PN-16 y PN-20': {a:50.749,  c:202.5187}, 'PN-50': {a:76.7251, c:202.5187}},
+      '200': {'PN-10, PN-16 y PN-20': {a:77.7937, c:252.5415}, 'PN-50': {a:153.7926,c:252.5415}},
+    },
+    'G-1600': {
+      '200': {'PN-10, PN-16 y PN-20': {a:80.7813, c:412.8282}, 'PN-50': {a:111.2079,c:412.8282}},
+      '250': {'PN-10, PN-16 y PN-20': {a:90.4809, c:419.8928}, 'PN-50': {a:114.9944,c:419.8928}},
+    },
+    'G-2500': {'250': {'PN-10, PN-16 y PN-20': {a:142.8274,c:368.4384}}},
+  },
+};
+
+const PRECIOS_COMP = {
+  PISTONES: {
+    'G-16': {cs:1640,ss:1125,pe:245,pep:335}, 'G-25': {cs:1640,ss:1125,pe:245,pep:335},
+    'G-40': {cs:1640,ss:1125,pe:245,pep:335}, 'G-65': {cs:1640,ss:1125,pe:245,pep:335},
+    'G-100':{cs:1640,ss:1125,pe:245,pep:335}, 'G-160':{cs:2415,ss:1530,pe:335,pep:455},
+    'G-250':{cs:2415,ss:1530,pe:335,pep:455}, 'G-400':{cs:2415,ss:1530,pe:335,pep:455},
+  },
+  TURBINA: {
+    'G-65': {cs:1480,ss:890, pe:245,pep:360}, 'G-100':{cs:1480,ss:890, pe:245,pep:360},
+    'G-160':{cs:1595,ss:1015,pe:335,pep:485}, 'G-250':{cs:1595,ss:1015,pe:335,pep:485},
+    'G-400':{cs:1595,ss:1015,pe:335,pep:485}, 'G-650':{cs:2525,ss:1585,pe:510,pep:745},
+    'G-1000':{cs:2525,ss:1585,pe:510,pep:745},'G-1600':{cs:2525,ss:1585,pe:510,pep:745},
+    'G-2500':{cs:2675,ss:1730,pe:580,pep:885},
+  },
+};
+
+const PRECIOS_CR = {l1:55,l2:75,l3:117.32,l4:206.47};
+const CR_TRAMOS = ['≤ 5 GWh/año → 55 €/mes','5–100 GWh/año → 75 €/mes','100–1000 GWh/año → 117,32 €/mes','> 1000 GWh/año → 206,47 €/mes'];
+
+const REMOTAS_AP = [
+  {l:'Remota integrada conversor (1 canal)',p:100.70},
+  {l:'Remota 1-3 canales (sin computador caudal)',p:136.81},
+  {l:'Remota + 1 computador caudal',p:210.99},
+  {l:'Remota + 2 computadores caudal',p:276.92},
+  {l:'Remota + 3 computadores caudal',p:331.71},
+];
+const REMOTAS_MP = [{l:'Remota 1 línea RED MP/BP',p:76.99},{l:'Línea adicional RED MP/BP',p:14.76}];
+
+const DN_LABEL = {'3/4"':'3/4"','7/8"':'7/8"','1 1/4"':'1 1/4"',
+  '50':'DN 50','80':'DN 80','100':'DN 100','150':'DN 150','200':'DN 200','250':'DN 250'};
+const PN_LABEL = {'0.5':'0,5 bar (BP)', 'PN-10, PN-16 y PN-20':'PN-10/16/20', 'PN-50':'PN-50 (alta presión)'};
+
+// ============================================================
+// STATE
+// ============================================================
+const S = {
+  equipSel: null,  // 'co','cr','co-cr'
+  coProp:null, coTech:null, coCal:null, coDN:null, coPN:null,
+  coAv:null, coCad:null, coRes:null,
+  crProp:null, crAv:null, crCad:null,
+  oferta:null, compOpt:null, remota:null,
+};
+
+// ============================================================
+// HELPERS
+// ============================================================
+const v = id => document.getElementById(id).value;
+const el = id => document.getElementById(id);
+const show = (id,b) => el(id).style.display = b?'':'none';
+const fmt = n => n!=null ? n.toFixed(2).replace('.',',')+'&nbsp;€' : '—';
+const fmtM = n => n!=null ? n.toFixed(2).replace('.',',')+'&nbsp;€/mes' : '—';
+
+function fillSel(id, items, ph, lmap){
+  const s = el(id);
+  s.innerHTML = `<option value="">— ${ph} —</option>` +
+    items.map(o=>`<option value="${o}">${lmap&&lmap[o]?lmap[o]:o}</option>`).join('');
+}
+
+function setProp(equip, val){
+  const e1 = el(equip+'-p-cli'), e2 = el(equip+'-p-alq');
+  e1.classList.toggle('prop-a', val==='CLI'); e2.classList.toggle('prop-a', val==='ALQ');
+  if(equip==='co') S.coProp=val;
+  if(equip==='cr') S.crProp=val;
+  recalc();
+}
+
+function setYN(key, val){
+  el(key+'-si').classList.remove('yn-y','yn-n');
+  el(key+'-no').classList.remove('yn-y','yn-n');
+  if(val==='SI') el(key+'-si').classList.add('yn-y');
+  else el(key+'-no').classList.add('yn-n');
+  if(key==='co-av') S.coAv=val;
+  if(key==='co-cad') S.coCad=val;
+  if(key==='co-ps') window._coPS=val;
+  if(key==='co-exc') { window._coExc=val; recalc(); }
+  if(key==='co-sob') {
+    window._coSob=val;
+    const wrap = document.getElementById('sob-nuevo-wrap');
+    if(wrap) wrap.style.display = val==='SI' ? '' : 'none';
+    if(val==='SI'){
+      // Reset sob selectors
+      fillSel('sob-cal', [], 'Calibre nuevo');
+      fillSel('sob-dn', [], 'DN nuevo', DN_LABEL);
+      fillSel('sob-pn', [], 'PN nuevo', PN_LABEL);
+    }
+    recalc();
+  }
+  if(key==='cr-av') S.crAv=val;
+  if(key==='cr-cad') S.crCad=val;
+  recalc();
+}
+
+function syncConsumo(src){
+  const val = v(src==='cr' ? 'cr-consumo' : 'consumo');
+  if(src==='cr') el('consumo').value = val;
+  else el('cr-consumo').value = val;
+  recalc();
+}
+
+function onPresionChange(){ updateRemotaOpts(); recalc(); }
+
+// ============================================================
+// EQUIP SELECTION
+// ============================================================
+function toggleEquipSel(sel){
+  // Reset extras if equipment type changes
+  if(S.equipSel !== sel){
+    _extraCOs=[]; el('extra-co-container').innerHTML='';
+    _extraCRs=[]; el('extra-cr-container').innerHTML='';
+  }
+  S.equipSel = sel;
+  ['co','cr','co-cr'].forEach(s=>{
+    el('sel-'+s).classList.toggle('active', s===sel);
+  });
+  const hasCO = sel==='co'||sel==='co-cr';
+  const haCR = sel==='cr'||sel==='co-cr';
+  show('card-co', hasCO);
+  show('card-cr', haCR);
+  el('cr-num').textContent = hasCO ? '3B' : '3';
+  // consumo obligatorio si CR presente
+  recalc();
+}
+
+// ============================================================
+// CO CASCADES
+// ============================================================
+function onCoTech(){
+  S.coTech=v('co-tech'); S.coCal=null; S.coDN=null; S.coPN=null;
+  const cals = S.coTech ? Object.keys(PRECIOS_ALQ[S.coTech]||{}) : [];
+  fillSel('co-cal', cals, 'Calibre');
+  fillSel('co-dn', [], 'DN', DN_LABEL);
+  fillSel('co-pn', [], 'PN', PN_LABEL);
+  // MEMBRANA: PN siempre 0,5 — se fija automáticamente cuando se complete la cascada
+  const pnSel = el('co-pn');
+  if(S.coTech === 'MEMBRANA'){
+    pnSel.style.pointerEvents = 'none';
+    pnSel.style.background = 'var(--s2)';
+    pnSel.title = 'Membrana: presión siempre 0,5 bar';
+  } else {
+    pnSel.style.pointerEvents = '';
+    pnSel.style.background = '';
+    pnSel.title = '';
+  }
+  recalc();
+}
+function onCoCal(){
+  S.coCal=v('co-cal'); S.coDN=null; S.coPN=null;
+  const dns = S.coTech&&S.coCal ? Object.keys((PRECIOS_ALQ[S.coTech]||{})[S.coCal]||{}) : [];
+  fillSel('co-dn', dns, 'DN', DN_LABEL);
+  fillSel('co-pn', [], 'PN', PN_LABEL);
+  recalc();
+}
+function onCoDN(){
+  S.coDN=v('co-dn'); S.coPN=null;
+  const pnSel = el('co-pn');
+  if(S.coTech === 'MEMBRANA'){
+    // Membrana: PN siempre 0,5 — forzar única opción
+    pnSel.innerHTML = '<option value="0.5">0,5 bar (BP)</option>';
+    pnSel.value = '0.5';
+    pnSel.disabled = true;
+    pnSel.style.opacity = '0.7';
+    pnSel.title = 'Membrana: presión siempre 0,5 bar';
+  } else {
+    const pns = S.coTech&&S.coCal&&S.coDN
+      ? Object.keys(((PRECIOS_ALQ[S.coTech]||{})[S.coCal]||{})[S.coDN]||{}) : [];
+    fillSel('co-pn', pns, 'PN', PN_LABEL);
+    pnSel.disabled = false;
+    pnSel.style.opacity = '';
+    pnSel.title = '';
+  }
+  recalc();
+}
+
+// ============================================================
+// PRICE LOOKUPS
+// ============================================================
+function getCoRow(){
+  const t=v('co-tech')||S.coTech, c=v('co-cal')||S.coCal,
+        d=v('co-dn'), p=v('co-pn');
+  if(!t||!c||!d) return null;
+  const dnData = ((PRECIOS_ALQ[t]||{})[c]||{})[d]||{};
+  if(t==='MEMBRANA'){
+    // Para membrana usar la primera (y única) clave PN del dato, ignorar valor del select
+    const firstPN = Object.keys(dnData)[0];
+    return firstPN ? dnData[firstPN] : null;
+  }
+  if(!p) return null;
+  return dnData[p]||null;
+}
+function getCoAlq(){ const r=getCoRow(); return r?r.a:null; }
+function getCoCes(){ const r=getCoRow(); return r?r.c:null; }
+function getCompRow(){
+  const t=v('co-tech')||S.coTech, c=v('co-cal')||S.coCal;
+  return (PRECIOS_COMP[t]||{})[c]||null;
+}
+function getCRAlq(){
+  const consumo = parseFloat(v('cr-consumo')||v('consumo'));
+  if(isNaN(consumo)) return null;
+  if(consumo<=5) return PRECIOS_CR.l1;
+  if(consumo<=100) return PRECIOS_CR.l2;
+  if(consumo<=1000) return PRECIOS_CR.l3;
+  return PRECIOS_CR.l4;
+}
+function getCRTramo(){
+  const consumo = parseFloat(v('cr-consumo')||v('consumo'));
+  if(isNaN(consumo)) return '(consumo no indicado)';
+  if(consumo<=5) return '≤ 5 GWh/año';
+  if(consumo<=100) return '5–100 GWh/año';
+  if(consumo<=1000) return '100–1000 GWh/año';
+  return '> 1000 GWh/año';
+}
+function calibreNum(c){ return parseFloat((c||'').replace('G-','').replace(',','.')); }
+function esPequenno(c){ return calibreNum(c)<25; }
+
+// ============================================================
+// REMOTA
+// ============================================================
+function updateRemotaOpts(){
+  const red = v('presion_red');
+  const opts = red==='AP' ? REMOTAS_AP : REMOTAS_MP;
+  const sel = el('rem-cfg');
+  sel.innerHTML = '<option value="">— Seleccionar —</option>' +
+    opts.map((o,i)=>`<option value="${i}">${o.l} — ${o.p.toFixed(2).replace('.',',')} €/mes</option>`).join('');
+  S.remota = null;
+}
+function setRemota(on){
+  el('rem-si').classList.toggle('prop-a', on);
+  el('rem-no').classList.toggle('prop-a', !on);
+  show('rem-cfg-wrap', on);
+  if(!on){ S.remota=null; recalcSidebar(); }
+}
+function onRemotaCfg(){
+  const red = v('presion_red');
+  const opts = red==='AP' ? REMOTAS_AP : REMOTAS_MP;
+  const idx = parseInt(v('rem-cfg'));
+  S.remota = isNaN(idx) ? null : opts[idx] ? {label:opts[idx].l, precio:opts[idx].p} : null;
+  recalcSidebar();
+}
+
+// ============================================================
+// ALERTS
+// ============================================================
+function alertsHTML(msgs){
+  return msgs.map(m=>`<div class="al ${m.t}"><span class="al-i">${m.i}</span><span>${m.m}</span></div>`).join('');
+}
+function showCoAlerts(){
+  const msgs=[];
+  if(window._coExc==='SI') msgs.push({t:'err',i:'⛔',m:'Este contador cumple condiciones especiales (Dinámica ampliada superior a 1:20 / Salida de pulsos en alta frecuencia / Presión de trabajo > 35 bar / Calibre superior a G-2500 / DN-200 o mayor con PN-10). Nedgia no ofrece servicios para contadores con estas características.'});
+  if(S.coProp==='ALQ') msgs.push({t:'info',i:'ℹ️',m:'El contador ya es de alquiler de Nedgia. Las verificaciones son responsabilidad de Nedgia y gratuitas para el cliente.'});
+  if(S.coTech==='MEMBRANA') msgs.push({t:'warn',i:'⚠️',m:'Los contadores de membrana NO se verifican (no se reutilizan). Solo se puede ofrecer sustitución en alquiler.'});
+  if(S.coAv==='SI') msgs.push({t:'err',i:'🔧',m:'Contador averiado: NO se puede verificar. Solo se puede ofrecer sustitución en alquiler.'});
+  if(S.coCad==='SI'&&S.coTech!=='MEMBRANA') msgs.push({t:'warn',i:'🔔',m:'Contador caducado: se incluirá prueba de entrada en el presupuesto.'});
+  if(S.coTech==='MEMBRANA'&&esPequenno(S.coCal)&&S.coCad==='SI') msgs.push({t:'warn',i:'ℹ️',m:`Membrana pequeña (${S.coCal}) caducada: se retira directamente a los 20 años y se sustituye por alquiler.`});
+  el('co-alerts').innerHTML=alertsHTML(msgs);
+}
+function showCrAlerts(){
+  if(S.equipSel!=='cr'&&S.equipSel!=='co-cr') return;
+  const msgs=[];
+  if(S.crProp==='ALQ') msgs.push({t:'info',i:'ℹ️',m:'El conversor es de alquiler Nedgia. Las verificaciones son de Nedgia. No procede oferta de comprobación.'});
+  if(S.crAv==='SI') msgs.push({t:'err',i:'🔧',m:'Conversor averiado: no se puede verificar. Nedgia no repara equipos ajenos; el cliente debe gestionarlo con el fabricante. Se puede ofrecer conversor en alquiler.'});
+  if(window._crComp==='SI') msgs.push({t:'err',i:'⛔',m:'Computador de caudal: Nedgia no ofrece alquiler de esta tipología. Se generará correo informativo.'});
+  if(S.crCad==='SI'&&S.crAv!=='SI') msgs.push({t:'warn',i:'🔔',m:'Conversor caducado: incluir coste de calibración (450 €/ud) o proponer alquiler de conversor en la oferta.'});
+  el('cr-alerts').innerHTML=alertsHTML(msgs);
+}
+
+// ============================================================
+// DIAGNOSIS ENGINE
+// ============================================================
+function diagnose(){
+  const results=[];
+  const hasCO = S.equipSel==='co'||S.equipSel==='co-cr';
+  const haCR = S.equipSel==='cr'||S.equipSel==='co-cr';
+  const tech=v('co-tech'), cal=v('co-cal'), dn=v('co-dn'), pn=v('co-pn');
+  const esMembrana=tech==='MEMBRANA';
+  const avCO=S.coAv==='SI', cadCO=S.coCad==='SI';
+  const avCR=S.crAv==='SI', cadCR=S.crCad==='SI';
+  const propCliCO=S.coProp==='CLI', propAlqCO=S.coProp==='ALQ';
+  const propCliCR=S.crProp==='CLI', propAlqCR=S.crProp==='ALQ';
+
+  // — ALQUILER DEFINITIVO —
+  if(hasCO && propAlqCO){
+    results.push({id:'alquiler',label:'Alquiler definitivo',badge:'binfo',badgeTxt:'YA EN ALQUILER',
+      avail:false, desc:'El contador ya es de alquiler de Nedgia. No procede oferta.'});
+  } else if(hasCO && propCliCO){
+    const alqP = getCoAlq();
+    const crP = haCR && propCliCR && !avCR ? getCRAlq() : null;
+    const peP = cadCO && !esMembrana ? (getCompRow()||{}).pe : null;
+
+    let desc='Desde un principio se instala contador de alquiler definitivo (incluye mantenimiento, averías y futuras verificaciones).';
+    if(esMembrana && esPequenno(cal) && cadCO) desc='Membrana pequeña caducada ('+cal+'): se retira y sustituye por alquiler.';
+    else if(esMembrana) desc='Membrana no verificable. Se sustituye por contador de alquiler.';
+    if(cadCO && !esMembrana && peP) desc+=' Se incluye prueba de entrada del contador del cliente ('+peP+' €) al estar caducado.';
+    if(crP) desc+=' Conversor/corrector en alquiler incluido ('+crP.toFixed(2)+' €/mes según consumo).';
+
+    results.push({id:'alquiler',label:'Opción 1 — Alquiler definitivo',badge:'brec',badgeTxt:'★ RECOMENDADO',
+      avail:!!alqP, desc, extras: peP?[{label:'Prueba de entrada CO (caducado)',precio:peP}]:[]});
+  }
+
+  // — SOLO CONVERSOR EN ALQUILER (sin contador) —
+  if(!hasCO && haCR){
+    if(propAlqCR){
+      results.push({id:'alquiler-cr',label:'Conversor ya en alquiler',badge:'binfo',badgeTxt:'YA EN ALQUILER',avail:false,desc:'No procede oferta.'});
+    } else if(propCliCR){
+      const crP = getCRAlq();
+      const calCR = cadCR && !avCR ? 450 : null;
+      let desc=`Conversor en alquiler: ${crP?crP.toFixed(2):'-'} €/mes (según consumo). Incluye instalación, mantenimiento y verificaciones periódicas.`;
+      if(cadCR && !avCR) desc+=' El conversor del cliente está caducado: incluye comprobación previa (450 €/ud).';
+      if(avCR) desc='Conversor averiado: no se puede verificar. Se puede instalar conversor en alquiler si el cliente retira el suyo.';
+      results.push({id:'alquiler-cr',label:'Opción 1 — Conversor en alquiler',badge:'brec',badgeTxt:'★ RECOMENDADO',
+        avail:!!crP, desc, extras: calCR?[{label:'Calibración CR previo (caducado)',precio:calCR}]:[]});
+      // Opción 2: calibración in situ
+      if(!avCR && cadCR){
+        results.push({id:'calibracion-cr',label:'Opción 2 — Calibración in situ del CR del cliente',badge:'bok',badgeTxt:'DISPONIBLE',
+          avail:true, desc:'Calibración metrológica del conversor del cliente en la propia instalación. Requiere vaina/termopozo y válvula de corte. Coste: 450 €/ud.',
+          extras:[{label:'Calibración CR cliente',precio:450}]});
+      }
+    }
+    return results;
+  }
+
+  // — COMPROBACIÓN (solo si CO de cliente, no membrana, no averiado) —
+  if(hasCO && propCliCO && !esMembrana && !avCO){
+    const comp = getCompRow();
+    if(comp){
+      const hasCes = getCoCes();
+      const subOpts=[];
+      const peP = cadCO ? comp.pe : null;
+      if(S.coRes==='SI'){
+        subOpts.push({label:'Comprobación sin cesión (cliente tiene reserva)', precio:comp.ss, pe:peP});
+      } else {
+        if(hasCes) subOpts.push({label:'Comprobación con cesión temporal', precio:comp.cs, cesion:getCoCes(), pe:peP});
+        subOpts.push({label:'Comprobación sin cesión (bridas ciegas)', precio:comp.ss, pe:peP});
+      }
+      let desc='Verificación metrológica del contador manteniendo la propiedad del cliente.';
+      if(cadCO) desc+=' Contador caducado: se suma prueba de entrada ('+comp.pe+' €).';
+      results.push({id:'comprobacion',label:'Opción 2 — Comprobación metrológica (cliente propietario)',
+        badge:'bok',badgeTxt:'DISPONIBLE',avail:true,desc,subOpts});
+    }
+  } else if(hasCO && propCliCO && !esMembrana && avCO){
+    results.push({id:'comprobacion',label:'Comprobación metrológica',badge:'bno',badgeTxt:'NO DISPONIBLE',
+      avail:false,desc:'Contador averiado: no se puede verificar.'});
+  } else if(hasCO && propCliCO && esMembrana){
+    results.push({id:'comprobacion',label:'Comprobación metrológica',badge:'bno',badgeTxt:'NO APLICA',
+      avail:false,desc:'Los contadores de membrana no llevan comprobación.'});
+  }
+
+  // — CESIÓN TEMPORAL SOLA (si cliente, no membrana, no averiado, no tiene reserva) —
+  if(hasCO && propCliCO && !esMembrana && !avCO && getCoCes() && S.coRes!=='SI'){
+    results.push({id:'cesion',label:'Cesión temporal del contador',badge:'bok',badgeTxt:'DISPONIBLE',avail:true,
+      desc:`Contador en cesión: ${getCoCes().toFixed(2)} €/mes. No incluye instalación ni maniobras (a cargo del usuario). Factura por días de uso.`});
+  }
+
+  // — CONVERSOR (si también hay CR) —
+  if(hasCO && haCR && propCliCR && !avCR){
+    const crP = getCRAlq();
+    if(cadCR) results.push({id:'calibracion-cr-extra',label:'Opción adicional CR — Calibración in situ',badge:'bok',badgeTxt:'CR DISPONIBLE',
+      avail:true,desc:'Calibración del conversor del cliente in situ: 450 €/ud. O bien incluir conversor en alquiler con la oferta del contador.',
+      extras:[{label:'Calibración CR',precio:450}]});
+  }
+
+  return results;
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+let _offer=null, _subOpt=null;
+
+function renderDiag(){
+  const results = diagnose();
+  const d = el('diag-opts');
+  if(!results.length){
+    d.innerHTML='<div class="rc-empty">Completa los datos del equipo para ver el resumen.</div>';
+    return;
+  }
+  // Show informational cards only — no selection needed, email includes all options
+  d.innerHTML = results.map(r=>{
+    const border = r.badge==='brec' ? 'border-color:var(--accent);border-width:2px;' :
+                   r.avail ? 'border-color:var(--green-b);' : 'border-color:var(--red-b);opacity:.65;';
+    let subHtml='';
+    if(r.subOpts&&r.subOpts.length){
+      subHtml='<div style="padding:0 14px 10px;display:flex;flex-direction:column;gap:4px;">';
+      r.subOpts.forEach(so=>{
+        subHtml+=`<div style="font-size:12px;padding:5px 8px;background:var(--s2);border-radius:3px;border:1px solid var(--border);">
+          <b>${so.label}</b> — ${so.precio.toFixed(2).replace('.',',')} €
+          ${so.cesion?' + cesión '+so.cesion.toFixed(2).replace('.',',')+'&thinsp;€/mes':''}
+          ${so.pe?' + prueba entrada '+so.pe+'&thinsp;€':''}
+        </div>`;
+      });
+      subHtml+='</div>';
+    }
+    return `<div class="diag-item" style="${border}">
+      <div class="dh">
+        <span style="font-size:16px;">${r.badge==='brec'?'★':r.avail?'✓':'✗'}</span>
+        <span class="dlabel">${r.label}</span>
+        <span class="dbadge ${r.badge}">${r.badgeTxt}</span>
+      </div>
+      <div class="ddesc">${r.desc}</div>
+      ${subHtml}
+    </div>`;
+  }).join('');
+}
+
+function selectOffer(id,idx){
+  _offer={id,idx}; _subOpt=null;
+  const results=diagnose();
+  const r=results[idx];
+  if(!r||!r.subOpts||!r.subOpts.length) recalcSidebar();
+}
+function selectSubOpt(so){
+  _subOpt=so; recalcSidebar();
+}
+
+// ============================================================
+// RECALC MAIN
+// ============================================================
+function recalc(){
+  S.coTech=v('co-tech'); S.coCal=v('co-cal'); S.coDN=v('co-dn'); S.coPN=v('co-pn');
+  showCoAlerts(); showCrAlerts();
+  const hasCO=S.equipSel==='co'||S.equipSel==='co-cr';
+  const haCR=S.equipSel==='cr'||S.equipSel==='co-cr';
+  const ready=(hasCO&&S.coProp)||(haCR&&S.crProp);
+  show('card-diag', !!ready);
+  if(ready){
+    el('diag-num').textContent = hasCO&&haCR?'4':haCR?'4':'4';
+    renderDiag();
+    show('rem-wrap', true);
+    updateRemotaOpts();
+  }
+  showAddButtons();
+  recalcSidebar();
+  updateProgress();
+}
+
+// ============================================================
+// SIDEBAR
+// ============================================================
+function recalcSidebar(){
+  const items=[], puntuales=[];
+  const results=diagnose();
+  const offer=_offer?results.find(r=>r.id===_offer.id):null;
+
+  if(offer&&offer.avail){
+    if(offer.id==='alquiler'){
+      const ap=getCoAlq();
+      if(ap) items.push({label:`Contador ${v('co-tech')} ${v('co-cal')} DN-${v('co-dn')} (alquiler)`,precio:ap});
+      const haCR=S.equipSel==='co-cr';
+      if(haCR && S.crProp==='CLI' && S.crAv!=='SI'){
+        const cp=getCRAlq();
+        if(cp) items.push({label:`Conversor/Corrector (alquiler, ${getCRTramo()})`,precio:cp});
+      }
+      (offer.extras||[]).forEach(e=>puntuales.push(e));
+    }
+    if(offer.id==='alquiler-cr'){
+      const cp=getCRAlq();
+      if(cp) items.push({label:`Conversor/Corrector en alquiler (${getCRTramo()})`,precio:cp});
+      (offer.extras||[]).forEach(e=>puntuales.push(e));
+    }
+    if(offer.id==='calibracion-cr'){
+      (offer.extras||[]).forEach(e=>puntuales.push(e));
+    }
+    if(offer.id==='comprobacion'&&_subOpt){
+      if(_subOpt.cesion) items.push({label:'Cesión temporal durante comprobación',precio:_subOpt.cesion});
+      puntuales.push({label:_subOpt.label,precio:_subOpt.precio});
+      // PE incluido en precio comprobación — no añadir como puntual
+    }
+    if(offer.id==='cesion'){
+      const cp=getCoCes();
+      if(cp) items.push({label:`Cesión temporal ${v('co-tech')} ${v('co-cal')}`,precio:cp});
+    }
+    if(offer.id==='calibracion-cr-extra'){
+      (offer.extras||[]).forEach(e=>puntuales.push(e));
+    }
+  }
+  if(S.remota) items.push({label:S.remota.label,precio:S.remota.precio});
+
+  const totM=items.reduce((s,i)=>s+i.precio,0);
+  const totP=puntuales.reduce((s,i)=>s+i.precio,0);
+  const body=el('rc-body');
+
+  // Auto-build summary from current state (no offer selection needed)
+  const autoItems=[], autoPunt=[];
+  const hasCO_s = S.equipSel==='co'||S.equipSel==='co-cr';
+  const haCR_s  = S.equipSel==='cr'||S.equipSel==='co-cr';
+  if(hasCO_s && S.coProp==='CLI'){
+    const ap=getCoAlq();
+    if(ap) autoItems.push({label:`CO ${v('co-tech')||''} ${v('co-cal')||''} (alquiler)`,precio:ap});
+    const cp2=getCoCes();
+    if(cp2 && !ap) autoItems.push({label:`CO ${v('co-tech')||''} ${v('co-cal')||''} (cesión)`,precio:cp2});
+    const comp2=getCompRow();
+    if(comp2 && !ap) autoPunt.push({label:`Comprobación CO (sin cesión)`,precio:comp2.ss});
+    // PE incluido en precio comprobación — no mostrar en sidebar
+  }
+  if(haCR_s && S.crProp==='CLI'){
+    const crp2=getCRAlq();
+    if(crp2) autoItems.push({label:`CR alquiler (${getCRTramo()})`,precio:crp2});
+    else autoPunt.push({label:'CR calibración in situ',precio:450});
+  }
+  if(S.remota) autoItems.push({label:S.remota.label,precio:S.remota.precio});
+  const totM2=autoItems.reduce((s,i)=>s+i.precio,0);
+
+  if(!autoItems.length && !autoPunt.length){
+    body.innerHTML='<div class="rc-empty">Completa los datos del equipo</div>';
+  } else {
+    body.innerHTML=autoItems.map(i=>`<div class="rc-item"><span class="rc-name">${i.label}</span><span class="rc-p">${fmtM(i.precio)}</span></div>`).join('');
+  }
+  el('rc-total').innerHTML=totM2>0?totM2.toFixed(2).replace('.',',')+'&thinsp;€/mes':'—';
+
+  const punt=el('rc-punt');
+  if(!autoPunt.length){ punt.style.display='none'; }
+  else{
+    punt.style.display='block';
+    el('rc-punt-body').innerHTML=autoPunt.map(p=>`<div class="rc-item"><span class="rc-name">${p.label}</span><span class="rc-p">${fmt(p.precio)}</span></div>`).join('');
+  }
+  // Enable button when enough data is present to generate a meaningful email
+  // Bloquear si condiciones especiales
+  if(window._coExc==='SI'){ el('btn-gen').disabled=false; el('btn-gen').title=''; updateProgress(); return; }
+  const coCascadeOK = S.coProp==='ALQ' || (S.coProp==='CLI' && (
+    v('co-tech') && v('co-cal') && v('co-dn') && v('co-pn') && S.coAv && S.coCad
+  ));
+  const crCascadeOK = S.crProp==='ALQ' || (S.crProp==='CLI' && v('cr-consumo') && S.crAv && S.crCad);
+  const canGen = v('cups') && v('oc') && (
+    (S.equipSel==='co'    && coCascadeOK) ||
+    (S.equipSel==='cr'    && crCascadeOK) ||
+    (S.equipSel==='co-cr' && coCascadeOK && crCascadeOK)
+  );
+  el('btn-gen').disabled = !canGen;
+  // Button tooltip hint
+  if(!v('cups')||!v('oc')) el('btn-gen').title='Rellena CUPS y OC';
+  else if(!v('presion_red')) el('btn-gen').title='Selecciona la presión de red';
+  else if(!S.equipSel) el('btn-gen').title='Selecciona el tipo de equipo';
+  else if(!canGen) el('btn-gen').title='Completa todos los campos del equipo (tecnología, calibre, DN, PN, averiado, caducado)';
+  else el('btn-gen').title='';
+}
+
+// ============================================================
+// EMAIL
+// ============================================================
+function genEmail(){
+  const cups=v('cups')||'[CUPS]', oc=v('oc')||'[OC]';
+
+  // ── CASO ESPECIAL: computador de caudal ───────────────────────────────────
+  if(window._crComp==='SI'){
+    const L3=[];
+    if(empresa||contacto) L3.push(`Buenos días, ${contacto||empresa},`);
+    else L3.push('Buenos días,');
+    L3.push('');
+    L3.push(`Atendiendo a la solicitud recibida en relación con el punto de suministro CUPS: ${cups} / OC: ${oc},`);
+    L3.push('');
+    L3.push('lamentablemente no podemos ofrecerles nuestros servicios de alquiler para el conversor/corrector de su instalación, ya que éste es un computador de caudal, tipología para la que Nedgia no dispone de servicio de alquiler.');
+    L3.push('');
+    L3.push('Si necesitan cualquier otra información no duden en ponerse en contacto con nosotros.');
+    L3.push('');
+    L3.push('Atentamente,');
+    el('e-asunto').textContent = `Respuesta solicitud equipos medida — CUPS ${cups} / OC ${oc}`;
+    el('e-body').textContent = L3.join('\n');
+    el('e-body-html').innerHTML = buildEmailHTML(L3, null);
+    const ew3 = el('email-w');
+    ew3.classList.add('open');
+    ew3.scrollIntoView({behavior:'smooth', block:'start'});
+    saveToHist({cups, oc, empresa:v('empresa'), contacto:v('contacto'),
+      desc:'⛔ Computador de caudal — sin servicio alquiler CR',
+      asunto: el('e-asunto').textContent,
+      emailHtml: el('e-body-html').innerHTML,
+      emailTxt: el('e-body').textContent,
+      fecha:new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})
+    });
+    updateProgress();
+    return;
+  }
+  const empresa=v('empresa')||'', contacto=v('contacto')||'';
+  const hoy=new Date().toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'});
+
+  // ── CASO ESPECIAL: contador con condiciones fuera de servicio ──────────
+  if(window._coExc==='SI'){
+    const L2=[];
+    if(empresa||contacto) L2.push(`Buenos días,\n\n${contacto||empresa},`);
+    else L2.push('Buenos días,');
+    L2.push('');
+    L2.push(`Atendiendo a la solicitud recibida en relación con el punto de suministro CUPS: ${cups} / OC: ${oc},`);
+    L2.push('');
+    L2.push('lamentablemente no podemos ofrecerles nuestros servicios de alquiler ni de comprobación metrológica para el contador de su instalación, ya que éste presenta alguna de las siguientes características especiales para las que Nedgia no dispone de servicio:');
+    L2.push('');
+    L2.push('  - Dinámica ampliada superior a 1:20');
+    L2.push('  - Salida de pulsos en alta frecuencia');
+    L2.push('  - Presión de trabajo superior a 35 bar');
+    L2.push('  - Calibre superior a G-2500');
+    L2.push('  - DN-200 o mayor con PN-10');
+    L2.push('');
+    L2.push('Si necesitan cualquier otra información no duden en ponerse en contacto con nosotros.');
+    L2.push('');
+    L2.push('Atentamente,');
+    L2.push('Unidad de Medición — Nedgia');
+    L2.push('umedicion@nedgia.es');
+    L2.push('');
+    L2.push(`(Generado el ${hoy})`);
+    el('e-asunto').textContent = `Respuesta solicitud equipos medida — CUPS ${cups} / OC ${oc}`;
+    el('e-body').textContent = L2.join('\n');
+    el('e-body-html').innerHTML = buildEmailHTML(L2);
+    const ew = el('email-w');
+    ew.classList.add('open');
+    ew.scrollIntoView({behavior:'smooth', block:'start'});
+    saveToHist({cups,oc,presion:v('presion_red'),empresa:v('empresa'),
+      contacto:v('contacto'), desc:'⛔ Condiciones especiales — sin servicio',
+      asunto: el('e-asunto').textContent,
+      emailHtml: el('e-body-html').innerHTML,
+      emailTxt: el('e-body').textContent,
+      fecha:new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})
+    });
+    updateProgress();
+    return;
+  }
+  const hasCO = S.equipSel==='co'||S.equipSel==='co-cr';
+  const haCR  = S.equipSel==='cr'||S.equipSel==='co-cr';
+  const tech=v('co-tech'), cal=v('co-cal'), dn=v('co-dn'), pn=v('co-pn');
+  const esMembrana = tech==='MEMBRANA';
+  const avCO=S.coAv==='SI', cadCO=S.coCad==='SI', tieneReserva=S.coRes==='SI';
+  const avCR=S.crAv==='SI', cadCR=S.crCad==='SI';
+
+  // Build counter description string like real emails
+  const coDesc = [tech,cal,dn?`DN-${dn}`:''].filter(Boolean).join(' '); // PN omitido en correo
+  const coSerie = v('co-serie')||'';
+  const crSerie = v('cr-serie')||'';
+  const crTipo = v('cr-tipo')||'';
+  const comp = getCompRow();
+  const alqP = getCoAlq();
+  const cesP = getCoCes();
+  const crP = getCRAlq();
+  const crTramo = getCRTramo();
+
+  let L = []; // lines array
+
+  // ── SALUDO ──
+  if(empresa||contacto) L.push(`Buenos días, ${contacto||empresa},`);
+
+  L.push('');
+  L.push('Atendiendo a la solicitud recibida, pasamos a detallar los costes y condiciones que podemos ofrecerles para que puedan regularizar la situación metrológica de los equipos de medida instalados en:');
+  L.push('');
+  L.push(`CUPS: ${cups}`);
+  L.push(`OC: ${oc}`);
+
+  L.push('');
+
+  // ── PRUEBA EN SERIE: correo único, nada más ───────────────────────────
+  if(window._coPS==='SI'){
+    L.push('Atendiendo a la solicitud recibida, le indicamos los costes de ejecución de prueba en serie de contadores con los siguientes criterios al respecto:');
+    L.push('');
+    L.push('Prueba en serie de Contadores propiedad de cliente. El coste de la misma son 500 euros por pareja de contadores. Para poder realizar la prueba en serie es necesario cumplir con los siguientes requisitos:');
+    L.push('');
+    L.push('- Que la figura de la ERM corresponda a la Figura IV con bypass y el consumo de la instalación sea mayor a 30 GWh/año.');
+    L.push('- Que haya consumo en el momento de la prueba y que trabajen por encima del 20% del Qmax del contador durante toda la prueba, de lo contrario podría no ser válida.');
+    L.push('- Que los conversores estén con la calibración vigente.');
+    L.push('- Que se haya realizado prueba en serie en año anterior y sucesivos con resultado Apto hasta el 6º año.');
+    L.push('- Se informa al Consumidor que según normativa vigente (Orden TED/181/2025 de 13 de febrero de 2025) las pruebas en serie pasan de ser anuales a semestrales para consumos superiores a 1000 GWh/año.');
+    L.push('');
+    L.push('| MODALIDAD | Coste (€) |');
+    L.push('| Prueba en serie (1 CO alquiler + 1 CO cliente) | 250 |');
+    L.push('| Prueba en serie (2 CO cliente) | 500 |');
+    L.push('');
+    L.push('NOTA: No se factura si los 2 contadores son de alquiler.');
+    L.push('');
+    L.push('────────────────────────────────────────────────');
+    L.push('');
+    L.push('**Todos los precios indicados no incluyen el IVA. No es necesario que preparen pedido alguno ya que los costes de los servicios solicitados se pasarán por la factura de gas de su Comercializadora una vez finalizados los trabajos.**');
+    L.push('');
+    L.push('Por favor, envíenos un correo como aceptación del presente presupuesto y los siguientes datos para gestionar el acceso a las instalaciones:');
+    L.push('');
+    L.push('PERSONA DE CONTACTO:');
+    L.push('E-MAIL:');
+    L.push('TELÉFONO:');
+    L.push('');
+    L.push('Quedamos a la espera de su conformidad y la opción elegida para iniciar las gestiones.');
+    if(window._telemedida==='SI'){
+      L.push('────────────────────────────────────────────────');
+      L.push('NOTA IMPORTANTE:');
+      L.push('Indicarles que no nos haremos responsables de la Incidencia que pueda tener actualmente en la comunicación de la Telemedida, dado que desde que acepten la oferta, el plazo para la instalación de los equipos depende de la disponibilidad del material a instalar y la coordinación para los accesos con el cliente y las empresas colaboradoras que nos realizan los trabajos.');
+      L.push('');
+    }
+    L.push('Atentamente,');
+    el('e-asunto').textContent = `Oferta Prueba en Serie — CUPS ${cups} / OC ${oc}`;
+    el('e-body').textContent = L.join('\n');
+    el('e-body-html').innerHTML = buildEmailHTML(L, null);
+    const ew2 = el('email-w');
+    ew2.classList.add('open');
+    ew2.scrollIntoView({behavior:'smooth', block:'start'});
+    saveToHist({cups, oc,  presion:v('presion_red'), empresa:v('empresa'),
+      contacto:v('contacto'), desc:'Prueba en serie',
+      asunto: el('e-asunto').textContent,
+      emailHtml: el('e-body-html').innerHTML,
+      emailTxt: el('e-body').textContent,
+      fecha:new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})
+    });
+    updateProgress();
+    return;
+  }
+
+  // ── CONTADOR ──────────────────────────────────────────────────────────
+  if(hasCO){
+    if(S.coProp==='ALQ'){
+      L.push('CONTADOR (ALQUILER NEDGIA):');
+      L.push('Las verificaciones del contador son responsabilidad de Nedgia y no tienen coste adicional para el cliente.');
+      L.push('');
+    } else if(S.coProp==='CLI'){
+      const co1Label = _extraCOs.length > 0 ? 'CONTADOR 1:' : 'CONTADOR:';
+      // Only add label if we have price data to show
+      if(alqP || getCompRow()){
+        L.push(co1Label);
+        L.push('');
+        // Estado del contador antes de las opciones
+        let coEstado = '';
+        if(avCO && cadCO)       coEstado = 'Según nos consta, el contador de su propiedad se encuentra averiado y caducado metrológicamente, por lo que le ofrecemos las siguientes opciones:';
+        else if(avCO)           coEstado = 'Según nos consta, el contador de su propiedad se encuentra averiado, por lo que le ofrecemos las siguientes opciones:';
+        else if(cadCO && !esMembrana) coEstado = 'Según nos consta, el contador de su propiedad se encuentra caducado metrológicamente, por lo que le ofrecemos las siguientes opciones:';
+        else if(esMembrana && cadCO) coEstado = 'Según nos consta, el contador de su propiedad es de tipo membrana y se encuentra caducado metrológicamente, por lo que le ofrecemos la siguiente opción:';
+        else if(esMembrana)     coEstado = 'Según nos consta, el contador de su propiedad es de tipo membrana, por lo que le ofrecemos la siguiente opción:';
+        else                    coEstado = 'Con respecto al contador de su propiedad, le ofrecemos las siguientes opciones:';
+        L.push(coEstado);
+        L.push('');
+      }
+
+      if(esMembrana){
+        // Membrana: solo alquiler
+        if(alqP){
+          L.push('Desde NEDGIA no se ofrece el servicio de comprobación metrológica a contadores de membrana. Para esta tipología de contador sólo se ofrece la opción de alquiler.');
+          L.push('');
+          L.push('Opción 1: Solicitar un contador de alquiler definitivo. Desde un principio se colocaría un contador de alquiler definitivo que cubre el mantenimiento, averías y futuras comprobaciones del equipo.');
+          // MEMBRANA: nunca hay PE, independientemente de si está caducado
+          {
+            L.push('');
+            L.push('Los costes son los siguientes:');
+            L.push(`| TIPO DE CONTADOR | ${coSerie?'N.º Serie | ':''}Coste alquiler definitivo (€/mes) |`);
+            L.push(`| ${coDesc} | ${coSerie?coSerie+' | ':''}${alqP.toFixed(2).replace('.',',')} |`);
+          }
+          L.push('');
+        }
+      } else if(avCO){
+        // Averiado: alquiler + cesión temporal para mantener propiedad
+        L.push('El contador está averiado y no puede ser verificado. Se ofrecen las siguientes opciones:');
+        L.push('');
+        if(alqP){
+          L.push('Opción 1: Solicitar un contador de alquiler definitivo. Desde un principio se colocaría un contador de alquiler definitivo que cubre el mantenimiento, averías y futuras comprobaciones del equipo.');
+          L.push('');
+          L.push('Los costes son los siguientes:');
+          L.push(`| TIPO DE CONTADOR | ${coSerie?'N.º Serie | ':''}Coste alquiler definitivo (€/mes) |`);
+          L.push(`| ${coDesc} | ${coSerie?coSerie+' | ':''}${alqP.toFixed(2).replace('.',',')} |`);
+          L.push('');
+        }
+        // Opción 2: cesión temporal para mantener propiedad mientras repara
+        if(cesP){
+          L.push('Opción 2: Cesión temporal de contador para mantener la propiedad. Se instalaría un contador en régimen de cesión temporal mientras el cliente gestiona la reparación del suyo con el fabricante. Una vez reparado y verificado, se procedería a su reinstalación.');
+          L.push('');
+          L.push('Los costes son los siguientes:');
+          L.push(`| TIPO DE CONTADOR | ${coSerie?'N.º Serie | ':''}Coste cesión temporal (€/mes) (*) |`);
+          L.push(`| ${coDesc} | ${coSerie?coSerie+' | ':''}${cesP.toFixed(2).replace('.',',')} |`);
+          L.push('');
+          L.push(' (*) El contador de cesión temporal se factura por días de uso siendo su coste mensual el indicado en la tabla anterior.');
+          L.push('');
+          L.push('NOTA: Los precios de CESIÓN no comprenden instalación ni maniobras, que serán a cargo del usuario.');
+          L.push('');
+        }
+      } else {
+        // Normal: alquiler + comprobación
+        let nOpt=0;
+
+        // Opción alquiler (con sobredimensionado: precio del nuevo calibre, PE del actual)
+        const esSob = window._coSob==='SI';
+        const sobAlqP = esSob ? getSobAlqPrecio() : null;
+        const sobDesc = esSob ? getSobDesc() : '';
+        const precioAlq = (esSob && sobAlqP) ? sobAlqP : alqP;
+
+        if(precioAlq){
+          nOpt++;
+          const peP = cadCO && comp ? comp.pe : null;
+          if(esSob){
+            L.push(`Opción ${nOpt}: Solicitar un contador de alquiler definitivo de calibre ${sobDesc||'nuevo'}. El contador actual de su propiedad está sobredimensionado y se sustituirá por un nuevo contador de alquiler del calibre adecuado, que cubre el mantenimiento, averías y futuras comprobaciones del equipo.${cadCO?' Al estar caducado el contador actual, se factura la prueba de entrada del mismo.':''}`);
+          } else {
+            if(cadCO){
+              L.push(`Opción ${nOpt}: Solicitar un contador de alquiler definitivo. Desde un principio se colocaría un contador de alquiler definitivo que cubre el mantenimiento, averías y futuras comprobaciones del equipo. El contador de su propiedad se ha de comprobar igualmente para conocer cómo ha estado funcionando, pero solo se factura el coste de la prueba de entrada en el laboratorio.`);
+            } else {
+              L.push(`Opción ${nOpt}: Solicitar un contador de alquiler definitivo. Desde un principio se colocaría un contador de alquiler definitivo que cubre el mantenimiento, averías y futuras comprobaciones del equipo.`);
+            }
+          }
+          L.push('Los costes son los siguientes:');
+          if(peP){
+            if(esSob){
+              L.push(`| TIPO DE CONTADOR ACTUAL | ${coSerie?'N.º Serie | ':''}Coste de la comprobación prueba-entrada ${coDesc} actual (€) | Coste contador alquiler definitivo ${sobDesc} (€/mes) |`);
+              L.push(`| ${coDesc} | ${coSerie?coSerie+' | ':''}${peP} | ${precioAlq.toFixed(2).replace('.',',')} |`);
+            } else {
+              L.push(`| TIPO DE CONTADOR | ${coSerie?'N.º Serie | ':''}Coste alquiler definitivo (€/mes) | Prueba de entrada (€) |`);
+              L.push(`| ${coDesc} | ${coSerie?coSerie+' | ':''}${precioAlq.toFixed(2).replace('.',',')} | ${peP} |`);
+            }
+          } else {
+            L.push(`| TIPO DE CONTADOR${esSob?' ACTUAL':''} | ${coSerie?'N.º Serie | ':''}${esSob?`Coste contador alquiler definitivo ${sobDesc} (€/mes)`:'Coste contador alquiler definitivo (€/mes)'} |`);
+            L.push(`| ${coDesc} | ${coSerie?coSerie+' | ':''}${precioAlq.toFixed(2).replace('.',',')} |`);
+          }
+          L.push('');
+        }
+
+        // Opción comprobación con cesión (no se ofrece si sobredimensionado)
+        const esSob2 = window._coSob==='SI';
+        if(!esSob2 && comp && cesP){
+          nOpt++;
+          L.push(`Opción ${nOpt}: Comprobar el contador manteniendo la propiedad del mismo con equipo de sustitución. El procedimiento consistiría en desmontar el contador colocando uno en régimen de cesión temporal. El contador propio se comprobaría en el laboratorio y se volvería a montar una vez nos indicaran que el resultado es correcto. Quedaría excluido el coste de la reparación del equipo si ésta fuera necesaria y que deberían tramitar directamente con el fabricante del equipo.`);
+          L.push('');
+          L.push('Los costes son los siguientes:');
+          const peP2 = cadCO ? comp.pe : null;
+          // PE incluido en precio comprobación, no mostrar columna separada
+          L.push(`| TIPO DE CONTADOR | ${coSerie?'N.º Serie | ':''}Coste de la comprobación (€) | Coste contador cesión temporal (€/mes) (*) |`);
+          L.push(`| ${coDesc} | ${coSerie?coSerie+' | ':''}${comp.cs} | ${cesP.toFixed(2).replace('.',',')} |`);
+          L.push('');
+          L.push(' (*) El contador de cesión temporal se factura por días de uso siendo su coste mensual el indicado en la tabla anterior.');
+          L.push('');
+        }
+
+        // Opción comprobación sin cesión (no se ofrece si sobredimensionado)
+        if(!esSob2 && comp){
+          nOpt++;
+          L.push(`Opción ${nOpt}: Comprobar el contador manteniendo la propiedad del mismo. El procedimiento consistiría en desmontar el contador pasando el consumo por la otra línea de reserva y dejando esta línea cerrada y precintada (hasta que se reciba el contador verificado de Laboratorio). El contador propio retirado se comprobaría en el laboratorio y se volvería a montar una vez nos indicaran que el resultado es correcto. También en caso de instalación cerrada temporalmente sin consumo (mínimo 6 meses), en cuyo caso igualmente quedará la línea de medida cerrada y precintada hasta la instalación del contador verificado. Quedaría excluido el coste de la reparación del equipo si ésta fuera necesaria y que deberían tramitar directamente con el fabricante del equipo.`);
+          L.push('');
+          L.push('Los costes son los siguientes:');
+          const peP3 = cadCO ? comp.pe : null;
+          // PE incluido en precio comprobación, no mostrar columna separada
+          L.push(`| TIPO DE CONTADOR | ${coSerie?'N.º Serie | ':''}Coste de la comprobación (€) |`);
+          L.push(`| ${coDesc} | ${coSerie?coSerie+' | ':''}${comp.ss} |`);
+          L.push('');
+          L.push('(*) Esta 3ª opción es aplicable sólo para instalaciones con contador de reserva (instalado en Figura IV) o donde el Consumidor disponga de otro contador auxiliar en vigor metrológico para sustituir mientras se envía a verificar el retirado. También en caso de instalación cerrada temporalmente sin consumo (mínimo 6 meses).');
+          L.push('');
+        }
+      }
+    }
+  }
+
+  // ── CONVERSOR ────────────────────────────────────────────────────────
+  if(haCR){
+    if(S.crProp==='ALQ'){
+      L.push('CONVERSOR/CORRECTOR (ALQUILER NEDGIA):');
+      L.push('Las verificaciones del conversor son responsabilidad de Nedgia y no tienen coste adicional para el cliente.');
+      L.push('');
+    } else if(S.crProp==='CLI'){
+      const cr1Label = _extraCRs.length > 0 ? 'CONVERSOR/CORRECTOR 1:' : 'CONVERSOR/CORRECTOR:';
+      const _parsedMod = (typeof _crObsParsed!=='undefined'&&_crObsParsed.modelo)||'';
+      const _parsedPres = (typeof _crObsParsed!=='undefined'&&_crObsParsed.presion)||'';
+      // Enrich with parsed observations data
+      const _crMod = _crObsParsed.modelo||'';
+      const _crPres = _crObsParsed.presion||'';
+      const _crContacto = _crObsParsed.nombreContacto||'';
+      const _crEmailCli = _crObsParsed.emailContacto||'';
+      const _crTelf = _crObsParsed.telefono||'';
+      if(crP || S.crAv==='SI'){
+        L.push(cr1Label);
+        L.push('');
+        // Estado del conversor antes de las opciones
+        let crEstado = '';
+        if(avCR && cadCR)  crEstado = 'Según nos consta, el conversor de su propiedad se encuentra averiado y caducado metrológicamente, por lo que le ofrecemos las siguientes opciones:';
+        else if(avCR)      crEstado = 'Según nos consta, el conversor de su propiedad se encuentra averiado, por lo que le ofrecemos las siguientes opciones:';
+        else if(cadCR)     crEstado = 'Según nos consta, el conversor de su propiedad se encuentra caducado metrológicamente, por lo que le ofrecemos las siguientes opciones:';
+        else               crEstado = 'Con respecto al conversor de su propiedad, le ofrecemos las siguientes opciones:';
+        L.push(crEstado);
+        L.push('');
+      }
+
+      if(avCR){
+        // Averiado: alquiler + cesión temporal para mantener propiedad
+        const cadTexto = cadCR ? ' El conversor está además caducado.' : '';
+        L.push(`El conversor está averiado y no puede ser verificado ni calibrado in situ.${cadTexto} Se ofrecen las siguientes opciones:`);
+        L.push('');
+        if(crP){
+          L.push(`Opción 1: Solicitar un conversor de alquiler por importe de ${crP.toFixed(2).replace('.',',')} euros/mes (IVA no incluido). Este importe incluye la instalación, mantenimiento y verificaciones periódicas. No es posible la comprobación del conversor del cliente previamente a la instalación del conversor de alquiler por estar averiado.`);
+          L.push('');
+          L.push('NOTA: Nedgia no puede reparar equipos de terceros; deberán gestionarlo directamente con el fabricante.');
+          L.push('');
+          L.push('Opción 2: Cesión temporal de conversor para mantener la propiedad. Se instalaría un conversor en régimen de cesión temporal mientras el cliente gestiona la reparación del suyo con el fabricante. Una vez reparado y verificado, se procedería a su reinstalación. El precio de la cesión es de 469,73 €/mes (IVA no incluido, facturado por días de uso).');
+          L.push('');
+        }
+      } else {
+        // Normal: alquiler + comprobación in situ
+        let nOpt=0;
+
+        if(crP){
+          nOpt++;
+          let inclComprobacion = cadCR ? ` Este importe incluye la instalación, mantenimiento, verificaciones periódicas y la comprobación del conversor del cliente previamente a la instalación del conversor de alquiler en el caso de que tengan la verificación caducada.` :
+            (S.crCad==='NO' ? ` Este importe incluye la instalación, mantenimiento, verificaciones periódicas. No es necesaria la comprobación del conversor del cliente previamente a la instalación del conversor de alquiler, debido a que tiene verificación vigente.` :
+            ` Este importe incluye la instalación, mantenimiento, verificaciones periódicas.`);
+          L.push(`Opción ${nOpt}: Solicitar un conversor en régimen de alquiler por importe de ${crP.toFixed(2).replace('.',',')} euros/mes/unidad (IVA no incluido).${inclComprobacion}`);
+          L.push('');
+        }
+
+        // Calibración in situ — enriquecida con datos del parser
+        nOpt++;
+        const crModObs = (typeof _crObsParsed!=='undefined'&&_crObsParsed.modelo)||'';
+        const crPresObs = (typeof _crObsParsed!=='undefined'&&_crObsParsed.presion)||'';
+        const crDescFull2 = [crModObs||crTipo, crSerie?'n.º serie: '+crSerie:''].filter(Boolean).join(' ');
+        const crPresStr = crPresObs ? ` ajustado a ${crPresObs}` : '';
+        L.push(`Opción ${nOpt}: Comprobación metrológica del conversor del cliente "in situ" a través de un Laboratorio aceptado. Esta comprobación solo podrá realizarse si su instalación dispone de vaina o termopozo para la sonda de temperatura y válvula de corte para seccionar la presión entre la toma del contador y la entrada al transmisor de presión.`);
+        L.push(`El coste de la comprobación metrológica del conversor de su propiedad${crDescFull2?' modelo '+crDescFull2:''}${crPresStr} es de 450 euros/unidad (IVA no incluido).`);
+        L.push('');
+      }
+    }
+  }
+
+  // ── EQUIPOS ADICIONALES ──────────────────────────────────────────────
+  // Extra COs: append as additional table rows to the alquiler/comprobación tables
+  if(_extraCOs.length > 0){
+    L.push('');
+    L.push('Contadores adicionales del mismo suministro:');
+    L.push('');
+    _extraCOs.forEach((co, i) => {
+      const num = i+2;
+      const tech=co.tech||'', cal=co.cal||'';
+      const dnEl=el(`xco${co.id}-dn`), pnEl=el(`xco${co.id}-pn`);
+      const dn=dnEl?dnEl.value:'', pn=pnEl?pnEl.value:'';
+      const serieEl=el(`xco${co.id}-serie`);
+      const serie=serieEl?serieEl.value:'';
+      const coDesc=[tech,cal,dn?`DN-${dn}`:''].filter(Boolean).join(' '); // PN omitido en correo
+      const avCO=co.av==='SI', cadCO=co.cad==='SI', esMembrana=tech==='MEMBRANA';
+      const tieneReserva=co.res==='SI';
+      const alqP=getExtraCOAlq(co), cesP=getExtraCOCes(co), comp=getExtraCOComp(co);
+
+      if(co.prop==='ALQ'){
+        L.push(`Contador ${num} (${coDesc||'—'}${serie?' | Nº Serie '+serie:''}): Alquiler Nedgia — verificaciones sin coste adicional.`);
+      } else if(co.prop==='CLI'){
+        L.push(`────`);
+        L.push(`Contador ${num}${serie?' — N.º Serie '+serie:''}:`);
+        L.push('');
+        if(esMembrana){
+          if(alqP){
+            L.push(`| TIPO DE CONTADOR | ${serie?'N.º Serie | ':''}Coste alquiler definitivo (€/mes) |`);
+            L.push(`| ${coDesc} | ${serie?serie+' | ':''}${alqP.toFixed(2).replace('.',',')} |`);
+          }
+        } else if(avCO){
+          if(alqP){ L.push(`Opción 1: Alquiler definitivo — ${alqP.toFixed(2).replace('.',',')} €/mes (sin IVA).`); }
+          if(cesP){ L.push(`Opción 2: Cesión temporal para mantener la propiedad — ${cesP.toFixed(2).replace('.',',')} €/mes (por días de uso).`); }
+          L.push('El contador está averiado y no puede verificarse. El cliente gestiona la reparación con el fabricante si desea recuperarlo.');
+        } else {
+          let nOpt=0;
+          if(alqP){
+            nOpt++;
+            const peP=cadCO&&comp?comp.pe:null;
+            L.push(`Opción ${nOpt}: Alquiler definitivo.`);
+            L.push(`| TIPO DE CONTADOR | ${serie?'N.º Serie | ':''}Coste alquiler definitivo (€/mes) | ${peP?'Prueba de entrada (€) |':''}`);
+            L.push(`| ${coDesc} | ${serie?serie+' | ':''}${alqP.toFixed(2).replace('.',',')} | ${peP?peP+' |':''}`);
+            L.push('');
+          }
+          if(!esSob && comp&&cesP){
+            nOpt++;
+            L.push(`Opción ${nOpt}: Comprobación con cesión temporal.`);
+            L.push(`| TIPO DE CONTADOR | ${serie?'N.º Serie | ':''}Coste comprobación (€) | Cesión temporal (€/mes) (*) |`);
+            L.push(`| ${coDesc} | ${serie?serie+' | ':''}${comp.cs} | ${cesP.toFixed(2).replace('.',',')} |`);
+            L.push(` (*) El contador de cesión temporal se factura por días de uso.`);
+            L.push('');
+          }
+          if(comp){
+            nOpt++;
+            const lbl=tieneReserva?'(cliente tiene reserva)':'(bridas ciegas)';
+            L.push(`Opción ${nOpt}: Comprobación sin cesión ${lbl}.`);
+            L.push(`| TIPO DE CONTADOR | ${serie?'N.º Serie | ':''}Coste comprobación (€) |`);
+            L.push(`| ${coDesc} | ${serie?serie+' | ':''}${comp.ss} |`);
+            L.push('');
+          }
+        }
+      }
+      L.push('');
+    });
+  }
+
+  if(_extraCRs.length > 0){
+    L.push('');
+    L.push('Conversores adicionales del mismo suministro:');
+    L.push('');
+    _extraCRs.forEach((cr, i) => {
+      const num = i+2;
+      const serieEl=el(`xcr${cr.id}-serie`);
+      const serie=serieEl?serieEl.value:'';
+      const avCR=cr.av==='SI', cadCR=cr.cad==='SI';
+      const crP=getExtraCRAlq(cr), tramo=getExtraCRTramo(cr);
+      L.push(`────`);
+      L.push(`Conversor ${num}${serie?' — N.º Serie '+serie:''}:`);
+      L.push('');
+      if(cr.prop==='ALQ'){
+        L.push('Conversor de alquiler Nedgia — verificaciones sin coste adicional.');
+      } else if(cr.prop==='CLI'){
+        if(avCR){
+          if(crP){ L.push(`Opción 1: Alquiler del conversor — ${crP.toFixed(2).replace('.',',')} €/mes (sin IVA, tramo ${tramo}).`); }
+          L.push('Opción 2: Cesión temporal para mantener la propiedad mientras se gestiona la reparación con el fabricante.');
+          L.push('NOTA: Nedgia no puede reparar equipos de terceros.');
+        } else {
+          if(crP){ L.push(`Opción 1: Alquiler del conversor — ${crP.toFixed(2).replace('.',',')} €/mes (sin IVA, tramo ${tramo})${cadCR?' (incluye comprobación previa al estar caducado)':''}.`); }
+          L.push(`Opción 2: Comprobación metrológica "in situ" — 450 €/ud (sin IVA). Requiere vaina/termopozo y válvula de corte.`);
+        }
+      }
+      L.push('');
+    });
+  }
+
+  // ── REMOTA ────────────────────────────────────────────────────────────
+  if(S.remota){
+    L.push('UNIDAD REMOTA DE TELEMEDIDA:');
+    L.push(`El precio del alquiler de la Unidad Remota es de ${S.remota.precio.toFixed(2).replace('.',',')} €/mes (IVA no incluido). Configuración: ${S.remota.label}. El precio incluye la instalación, el coste de las comunicaciones y el mantenimiento de los equipos.`);
+    L.push('');
+  }
+
+  // ── PRUEBA EN SERIE ─────────────────────────────────────────────────
+  if(window._coPS==='SI'){
+    L.push('────────────────────────────────────────────────');
+    L.push('');
+    L.push('PRUEBA EN SERIE DE CONTADORES:');
+    L.push('');
+    L.push('Prueba en serie de Contadores propiedad de cliente. El coste de la misma son 500 \u20ac por pareja de contadores.');
+    L.push('Para poder realizar la prueba en serie es necesario cumplir con los siguientes requisitos:');
+    L.push('- Que haya consumo en el momento de la prueba y que trabajen por encima del 20% del Qmax del contador durante toda la prueba, de lo contrario podría no ser válida.');
+    L.push('- Que los conversores estén con la calibración vigente.');
+    L.push('- Que la figura de la ERM disponga de bypass.');
+    L.push('');
+    L.push('| MODALIDAD | Coste (\u20ac) |');
+    L.push('| Prueba en serie (1 CO alquiler + 1 CO cliente) | 250 |');
+    L.push('| Prueba en serie (2 CO cliente) | 500 |');
+    L.push('');
+    L.push('NOTA: No se factura si los 2 contadores son de alquiler.');
+    L.push('');
+  }
+  // ── PIE ───────────────────────────────────────────────────────────────
+  L.push('**Todos los precios indicados no incluyen el IVA. No es necesario que preparen pedido alguno ya que los costes de los servicios solicitados se pasarán por la factura de gas de su Comercializadora una vez finalizados los trabajos.**');
+  L.push('');
+  L.push('Por favor, envíenos un correo indicando la opción elegida como aceptación del presente presupuesto y los siguientes datos para gestionar el acceso a las instalaciones.');
+  L.push('');
+  L.push('PERSONA DE CONTACTO:');
+  L.push('E-MAIL:');
+  L.push('TELÉFONO:');
+  L.push('');
+
+  const incluyeAlquilerCO = hasCO && S.coProp==='CLI' && alqP;
+  const incluyeAlquilerCR = haCR && S.crProp==='CLI' && crP;
+  const incluyeAlquiler = incluyeAlquilerCO || incluyeAlquilerCR;
+  if(incluyeAlquiler){
+    let equiposAlq = [];
+    if(incluyeAlquilerCO) equiposAlq.push('Contador');
+    if(incluyeAlquilerCR) equiposAlq.push('Conversor');
+    if(S.remota) equiposAlq.push('Unidad Remota de Telemedida');
+    const equiposStr = equiposAlq.join(', ');
+    L.push(`Adicionalmente, en caso de optar por el alquiler del ${equiposStr} (Opción 1) necesitamos que nos devuelva cumplimentado el fichero adjunto para formalizar el contrato.`);
+    L.push('');
+  }
+  L.push('Quedamos a la espera de su conformidad y la opción elegida para iniciar las gestiones.');
+  L.push('');
+  if(incluyeAlquiler){ L.push('__FICHA__'); }
+  // NOTA TELEMEDIDA — antes de Atentamente
+  if(window._telemedida==='SI'){
+    L.push('────────────────────────────────────────────────');
+    L.push('NOTA IMPORTANTE:');
+    L.push('Indicarles que no nos haremos responsables de la Incidencia que pueda tener actualmente en la comunicación de la Telemedida, dado que desde que acepten la oferta, el plazo para la instalación de los equipos depende de la disponibilidad del material a instalar y la coordinación para los accesos con el cliente y las empresas colaboradoras que nos realizan los trabajos.');
+    L.push('');
+  }
+  L.push('Atentamente,');
+
+  el('e-asunto').textContent = `Oferta Equipos Medida — CUPS ${cups} / OC ${oc}`;
+  el('e-body').textContent = L.join('\n');
+  // Build HTML preview with styled tables
+  const presionMap = {'AP':'Alta Presión (AP)','MP':'Media Presión (MP)','BP':'Baja Presión (BP)'};
+  const fichaHtml = incluyeAlquiler ? buildFichaHTML({
+    cups, oc,
+    empresa: v('empresa')||'',
+    consumo: v('cr-consumo')||v('consumo')||'',
+    presionRed: presionMap[v('presion_red')]||v('presion_red')||'',
+  }) : '';
+  // Build HTML and inject ficha at __FICHA__ marker position
+  let emailHtmlContent = buildEmailHTML(L, fichaHtml);
+  el('e-body-html').innerHTML = emailHtmlContent;
+  const ew = el('email-w');
+  ew.classList.add('open');
+  ew.scrollIntoView({behavior:'smooth', block:'start'});
+  // Save to historial
+  const equipDesc = [
+    S.equipSel==='co'?'Solo CO':S.equipSel==='cr'?'Solo CR':'CO + CR',
+    v('co-tech')&&v('co-cal')?v('co-tech')+' '+v('co-cal'):'',
+    S.coAv==='SI'?'⚠ Averiado':'',
+    S.coCad==='SI'?'Caducado':'',
+    S.crProp==='CLI'&&getCRAlq()?'CR alquiler '+getCRAlq().toFixed(2)+'€/mes':'',
+    S.remota?'+ Remota':'',
+  ].filter(Boolean).join(' · ');
+  saveToHist({cups,oc,presion:v('presion_red'),empresa:v('empresa'),
+    contacto:v('contacto'), desc:equipDesc,
+    asunto: el('e-asunto').textContent,
+    emailHtml: el('e-body-html').innerHTML,
+    emailTxt:  el('e-body').textContent,
+    fecha:new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})
+  });
+  updateProgress();
+}
+
+function buildFichaHTML(data){
+  // All styles inline so they survive clipboard copy to Outlook
+  const BLU  = '#1A4A88';
+  const LBLU = '#d0dff5';
+  const bd   = `border:1px solid ${BLU};`;
+  const td_b = `${bd}padding:5px 8px;font-size:12px;font-family:Arial,sans-serif;vertical-align:middle;`;
+  const lbl  = `${td_b}background:${LBLU};font-weight:700;color:${BLU};white-space:nowrap;width:22%;`;
+  const val  = `${td_b}background:#ffffff;min-width:80px;`;
+  const val_pre = `${td_b}background:#eef3fb;color:${BLU};font-weight:500;min-width:80px;`;
+
+  const pre = (v, ph) => v
+    ? `<td style="${val_pre}" contenteditable="true">${v}</td>`
+    : `<td style="${val}" contenteditable="true" data-ph="${ph}"></td>`;
+  const empty = (span='') => span
+    ? `<td style="${val}" contenteditable="true" colspan="${span}"></td>`
+    : `<td style="${val}" contenteditable="true"></td>`;
+
+  return `
+  <div style="margin-top:20px;border:2px solid ${BLU};border-radius:3px;overflow:hidden;font-family:Arial,sans-serif;">
+    <div style="background:${BLU};color:#fff;text-align:center;padding:8px 12px;font-size:13px;font-weight:700;letter-spacing:.03em;">
+      FICHA SOLICITUD CONTRATO EQUIPOS DE MEDIDA EN ALQUILER
+    </div>
+    <div style="background:${LBLU};text-align:center;padding:5px 12px;font-size:11px;font-style:italic;color:${BLU};font-weight:600;border-bottom:1px solid ${BLU};">
+      DATOS CONTRACTUALES (Cumplimentar todas las celdas en blanco)
+    </div>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="${lbl}">CUPS:</td>${pre(data.cups,'ES...')}
+        <td style="${lbl}">OC:</td>${pre(data.oc,'Nº OC')}
+      </tr>
+      <tr>
+        <td style="${lbl}">CONSUMO ANUAL (GWh/año):</td>
+        ${data.consumo
+          ? `<td style="${val_pre}" contenteditable="true" colspan="3">${data.consumo}</td>`
+          : `<td style="${val}" contenteditable="true" colspan="3"></td>`}
+      </tr>
+      <tr>
+        <td style="${lbl}">NOMBRE EMPRESA:</td>
+        ${data.empresa
+          ? `<td style="${val_pre}" contenteditable="true" colspan="3">${data.empresa}</td>`
+          : `<td style="${val}" contenteditable="true" colspan="3"></td>`}
+      </tr>
+      <tr>
+        <td style="${lbl}">CIF:</td>${empty()}
+        <td style="${lbl}">EMAIL:</td>${empty()}
+      </tr>
+      <tr>
+        <td style="${lbl}">DOMICILIO SOCIAL:</td>
+        <td style="${val}" contenteditable="true" colspan="3"></td>
+      </tr>
+      <tr>
+        <td style="${lbl}">DOMICILIO SUMINISTRO:</td>
+        <td style="${val}" contenteditable="true" colspan="3"></td>
+      </tr>
+      <tr>
+        <td style="${lbl}">PROVINCIA:</td>${empty()}
+        <td style="${lbl}">CP:</td>${empty()}
+      </tr>
+      <tr>
+        <td style="${lbl}">APODERADO:</td>${empty()}
+        <td style="${lbl}">DNI:</td>${empty()}
+      </tr>
+      <tr>
+        <td style="${lbl}">PRESIÓN RED ENTRADA (bar):</td>
+        ${data.presionRed
+          ? `<td style="${val_pre}" contenteditable="true" colspan="3">${data.presionRed}</td>`
+          : `<td style="${val}" contenteditable="true" colspan="3"></td>`}
+      </tr>
+    </table>
+  </div>`;
+}
+// ── COPY FUNCTIONS ────────────────────────────────────────────────────
+function copiarHtml(){
+  // Serialize contenteditable values before copying
+  const clone = el('e-body-html').cloneNode(true);
+  clone.querySelectorAll('[contenteditable]').forEach(cell => {
+    // Already has text content - just ensure it's captured
+  });
+  const html = clone.innerHTML;
+  const blob = new Blob([html], {type:'text/html'});
+  const blobText = new Blob([el('e-body').textContent], {type:'text/plain'});
+  try {
+    navigator.clipboard.write([new ClipboardItem({'text/html': blob, 'text/plain': blobText})]).then(()=>{
+      flashBtn(0,'✓ Copiado con tablas');
+    }).catch(()=>{ copiarTexto(); });
+  } catch(e){ copiarTexto(); }
+}
+function copiarTexto(){
+  navigator.clipboard.writeText(el('e-body').textContent).then(()=>{
+    flashBtn(1,'✓ Copiado');
+  });
+}
+function flashBtn(idx, txt){
+  const btns = document.querySelectorAll('.btn-copy-txt');
+  if(!btns[idx]) return;
+  const orig = btns[idx].textContent;
+  btns[idx].textContent = txt;
+  setTimeout(()=>{ btns[idx].textContent = orig; }, 2200);
+}
+
+// ── PROGRESS BAR ──────────────────────────────────────────────────────
+function updateProgress(){
+  const step1 = v('cups') && v('oc') && v('presion_red');
+  const step2 = !!S.equipSel;
+  const hasCO = S.equipSel==='co'||S.equipSel==='co-cr';
+  const haCR  = S.equipSel==='cr'||S.equipSel==='co-cr';
+  const coOK  = !hasCO || S.coProp==='ALQ' || (S.coProp==='CLI' && v('co-tech') && v('co-cal') && v('co-dn') && v('co-pn') && S.coAv && S.coCad);
+  const crOK  = !haCR  || S.crProp==='ALQ' || (S.crProp==='CLI' && v('cr-consumo') && S.crAv && S.crCad);
+  const step3 = step2 && coOK && crOK;
+  const step4 = step3 && el('card-diag').style.display !== 'none';
+  const step5 = !el('btn-gen').disabled;
+  const steps = [step1, step2, step3, step4, step5];
+  let lastDone = -1;
+  steps.forEach((ok,i) => {
+    const el2 = el('pb'+(i+1));
+    if(!el2) return;
+    if(ok){ el2.classList.add('done'); el2.classList.remove('active'); lastDone=i; }
+    else { el2.classList.remove('done','active'); }
+  });
+  const next = lastDone + 1;
+  if(next < 5){ const nb = el('pb'+(next+1)); if(nb){ nb.classList.remove('done'); nb.classList.add('active'); } }
+}
+
+// ── HISTORIAL ──────────────────────────────────────────────────────────
+function loadHist(){
+  try{ return JSON.parse(localStorage.getItem('nedgia_hist')||'[]'); } catch(e){ return []; }
+}
+function saveToHist(entry){
+  let hist = loadHist();
+  hist.unshift(entry);
+  if(hist.length > 30) hist = hist.slice(0,30);
+  localStorage.setItem('nedgia_hist', JSON.stringify(hist));
+  renderHist();
+}
+function renderHist(){
+  const allHist = loadHist();
+  const searchEl = document.getElementById('hist-search');
+  const q = searchEl ? searchEl.value.trim().toLowerCase() : '';
+  // Mantener índice original para que loadFromHist/delHist apunten siempre al array completo
+  let histFiltered = allHist.map((h, origIdx) => ({h, origIdx}));
+  if(q) histFiltered = histFiltered.filter(({h})=>
+    (h.oc||'').toLowerCase().includes(q) ||
+    (h.cups||'').toLowerCase().includes(q) ||
+    (h.empresa||'').toLowerCase().includes(q)
+  );
+  const body = el('hist-body');
+  if(!histFiltered.length){ body.innerHTML='<div class="hist-empty">'+(q?'Sin resultados para "'+q+'"':'Sin consultas guardadas')+'</div>'; return; }
+  body.innerHTML = histFiltered.map(({h, origIdx})=>`
+    <div class="hist-item" onclick="loadFromHist(${origIdx})" title="Cargar esta consulta">
+      <div class="hist-item-top">
+        <span class="hist-item-cups">CUPS: ${h.cups} · OC: ${h.oc}</span>
+        <span style="display:flex;align-items:center;gap:6px;">
+          <span class="hist-item-date">${h.fecha}</span>
+          <button class="btn-hist-del" onclick="delHist(event,${origIdx})" title="Eliminar">×</button>
+        </span>
+      </div>
+      <div class="hist-item-desc">${h.desc}</div>
+    </div>`).join('');
+}
+function clearHist(){
+  if(confirm('¿Borrar todo el historial?')){ localStorage.removeItem('nedgia_hist'); renderHist(); }
+}
+function delHist(e,i){
+  e.stopPropagation();
+  let hist = loadHist(); hist.splice(i,1);
+  localStorage.setItem('nedgia_hist', JSON.stringify(hist)); renderHist();
+}
+function loadFromHist(i){
+  const h = loadHist()[i];
+  if(!h) return;
+  showHistModal(h);
+}
+function showHistModal(h){
+  // Remove existing modal if any
+  const old = document.getElementById('hist-modal');
+  if(old) old.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'hist-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto;';
+
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#fff;border-radius:6px;max-width:780px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.25);overflow:hidden;';
+
+  box.innerHTML = `
+    <div style="background:#1c1a17;color:#eeeae4;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;font-family:monospace;font-size:12px;font-weight:600;letter-spacing:.05em;">
+      <span>📋 BORRADOR GUARDADO</span>
+      <button onclick="document.getElementById('hist-modal').remove()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:12px;padding:3px 10px;cursor:pointer;border-radius:3px;">✕ Cerrar</button>
+    </div>
+    <div style="padding:12px 20px;background:#f7f5f1;border-bottom:1px solid #ddd9d1;font-size:12px;line-height:2.2;">
+      <b style="color:#6b6560;font-weight:500;display:inline-block;width:58px;">Para:</b> umedicion@nedgia.es<br>
+      <b style="color:#6b6560;font-weight:500;display:inline-block;width:58px;">Asunto:</b> ${h.asunto||'—'}<br>
+      <b style="color:#6b6560;font-weight:500;display:inline-block;width:58px;">Fecha:</b> ${h.fecha}
+    </div>
+    <div style="padding:20px 24px;font-family:Arial,sans-serif;font-size:13px;line-height:1.75;max-height:60vh;overflow-y:auto;">
+      ${h.emailHtml||'<em style="color:#aaa;">Correo no disponible (generado con versión anterior)</em>'}
+    </div>
+    <div style="padding:12px 16px;background:#f7f5f1;border-top:1px solid #ddd9d1;display:flex;gap:8px;">
+      <button onclick="copyHistHtml(${JSON.stringify(h).replace(/'/g,'&#39;').replace(/"/g,'&quot;')})" 
+        style="flex:1;padding:10px;background:#fff;border:1.5px solid #ddd9d1;font-size:12px;font-weight:600;cursor:pointer;border-radius:4px;">
+        📋 Copiar para Outlook
+      </button>
+      <button onclick="copyHistTxt(${JSON.stringify(h).replace(/'/g,'&#39;').replace(/"/g,'&quot;')})"
+        style="flex:1;padding:10px;background:#fff;border:1.5px solid #ddd9d1;font-size:12px;font-weight:600;cursor:pointer;border-radius:4px;">
+        📄 Copiar texto plano
+      </button>
+      <button onclick="loadHistData(${JSON.stringify(h).replace(/'/g,'&#39;').replace(/"/g,'&quot;')})"
+        style="flex:1;padding:10px;background:#1A3F6B;color:#fff;border:none;font-size:12px;font-weight:600;cursor:pointer;border-radius:4px;">
+        ↩ Cargar datos
+      </button>
+      <button onclick="document.getElementById('hist-modal').remove();openRespModal(${JSON.stringify(h).replace(/'/g,'&#39;').replace(/"/g,'&quot;')})"
+        style="flex:1;padding:10px;background:#1a6038;color:#fff;border:none;font-size:12px;font-weight:700;cursor:pointer;border-radius:4px;">
+        ✉ Respuesta aceptación
+      </button>
+    </div>
+  `;
+  modal.appendChild(box);
+  // Close on backdrop click
+  modal.addEventListener('click', e=>{ if(e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+function copyHistHtml(h){
+  const blob = new Blob([h.emailHtml||''], {type:'text/html'});
+  const blobTxt = new Blob([h.emailTxt||''], {type:'text/plain'});
+  navigator.clipboard.write([new ClipboardItem({'text/html':blob,'text/plain':blobTxt})]).then(()=>{
+    alert('✓ Copiado con formato de tablas. Pega directamente en Outlook.');
+  }).catch(()=>{
+    navigator.clipboard.writeText(h.emailTxt||'').then(()=>alert('✓ Copiado como texto plano.'));
+  });
+}
+function copyHistTxt(h){
+  navigator.clipboard.writeText(h.emailTxt||'').then(()=>alert('✓ Texto copiado.'));
+}
+function loadHistData(h){
+  if(h.cups) el('cups').value=h.cups;
+  if(h.oc) el('oc').value=h.oc;
+  if(h.tarifa) el('tarifa').value=h.tarifa;
+  if(h.presion) el('presion_red').value=h.presion;
+  if(h.empresa) el('empresa').value=h.empresa;
+  if(h.contacto) el('contacto').value=h.contacto;
+  document.getElementById('hist-modal').remove();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ── HTML EMAIL BUILDER ─────────────────────────────────────────────────
+function buildEmailHTML(lines, fichaHtml){
+  const BLU = '#1A3F6B';
+  let html = `<div style="font-family:Arial,sans-serif;font-size:13px;line-height:1.65;color:#1c1a17;">`;
+  let i = 0;
+  while(i < lines.length){
+    const line = lines[i];
+
+    // Ficha marker
+    if(line === '__FICHA__'){ if(fichaHtml) html += fichaHtml; i++; continue; }
+
+    // Table rows
+    if(line.trim().startsWith('|')){
+      html += buildTable(lines, i);
+      while(i < lines.length && lines[i].trim().startsWith('|')) i++;
+      continue;
+    }
+
+    // Separator
+    if(line.startsWith('────')){
+      html += '<hr style="border:none;border-top:1px solid #ccd6e8;margin:12px 0;">';
+      i++; continue;
+    }
+
+    // NOTA IMPORTANTE
+    if(line === 'NOTA IMPORTANTE:'){
+      html += `<p style="margin:8px 0 2px;font-weight:700;color:#b01e1e;">${esc(line)}</p>`;
+      i++; continue;
+    }
+    if(line.startsWith('Indicarles que no nos haremos')){
+      html += `<p style="margin:0 0 8px;font-weight:700;color:#b01e1e;">${esc(line)}</p>`;
+      i++; continue;
+    }
+
+    // Opciones — underline + bold blue
+    if(/^Opción \d+:/.test(line)){
+      const m = line.match(/^(Opción \d+):(.*)/);
+      const lbl = m ? m[1] : line;
+      const rest = m ? m[2].trim() : '';
+      html += `<p style="margin:10px 0 3px;font-weight:700;color:#1c1a17;"><span style="text-decoration:underline;color:${BLU};">${esc(lbl)}:</span>${rest ? ' '+esc(rest) : ''}</p>`;
+      i++; continue;
+    }
+
+    // Section headers (CONTADOR:, CONVERSOR:, etc.) — bold blue underline
+    const skipLines = ['Atentamente,','Unidad de Medición — Nedgia','umedicion@nedgia.es'];
+    if(!skipLines.includes(line.trim()) && /^[A-ZÁÉÍÓÚÑÜ0-9\s\/\(\)\+\-\.]{4,}:$/.test(line.trim()) && line.trim() === line.trim().toUpperCase()){
+      html += `<p style="margin:10px 0 3px;font-weight:700;color:${BLU};text-decoration:underline;">${esc(line)}</p>`;
+      i++; continue;
+    }
+
+    // Contact fields
+    if(/^(PERSONA DE CONTACTO|E-MAIL|TELÉFONO):/.test(line)){
+      html += `<p style="margin:2px 0;font-weight:700;">${esc(line)}</p>`;
+      i++; continue;
+    }
+
+    // Bold paragraph (**)
+    if(line.startsWith('**') && line.endsWith('**')){
+      html += `<p style="margin:6px 0;font-weight:700;">${esc(line.slice(2,-2))}</p>`;
+      i++; continue;
+    }
+
+    // Note / asterisk — small grey italic
+    if(line.startsWith('(*)')||line.startsWith(' (*)')||line.startsWith('NOTA:')){
+      html += `<p style="margin:3px 0 6px;font-size:11px;color:#5a7090;font-style:italic;">${esc(line)}</p>`;
+      i++; continue;
+    }
+
+    // Bullet lines
+    if(line.startsWith('- ')){
+      html += `<p style="margin:2px 0 2px 14px;">${esc(line)}</p>`;
+      i++; continue;
+    }
+
+    // Footer signature
+    if(line === 'Atentamente,'){
+      html += `<p style="margin:14px 0 2px;">${esc(line)}</p>`;
+      i++; continue;
+    }
+
+
+    // "Los costes son los siguientes:" — blue no bold
+    if(line.startsWith('Los costes son los siguientes')){
+      html += `<p style="margin:6px 0 3px;color:${BLU};">${esc(line)}</p>`;
+      i++; continue;
+    }
+
+    // Price/important info detection — lines with € → blue bold for price part
+    if(line.includes('€/mes') || line.includes('€/ud') || line.includes('euros/mes')){
+      // Bold blue for price-containing lines
+      html += `<p style="margin:2px 0 4px;font-weight:700;color:${BLU};">${esc(line)}</p>`;
+      i++; continue;
+    }
+
+    // Empty line
+    if(!line.trim()){
+      html += '<p style="margin:0;height:6px;"></p>';
+      i++; continue;
+    }
+
+    // Regular paragraph
+    html += `<p style="margin:0 0 4px;color:#1c1a17;">${esc(line)}</p>`;
+    i++;
+  }
+  html += '</div>';
+  return html;
+}
+
+function buildTable(lines, startIdx){
+  const tableLines = [];
+  let j = startIdx;
+  while(j < lines.length && lines[j].trim().startsWith('|')){ tableLines.push(lines[j]); j++; }
+  if(!tableLines.length) return '';
+
+  const BLU  = '#1A4A88';
+  const LBLU = '#d0dff5';
+  const VLBL = '#eef3fb';
+  const parseCells = row => row.split('|').filter((_,i,a)=>i>0&&i<a.length-1).map(c=>c.trim());
+
+  let html = `<table style="width:100%;border-collapse:collapse;margin:12px 0 16px;font-size:12px;font-family:Arial,sans-serif;border:2px solid ${BLU};">`;
+
+  tableLines.forEach((row, ri) => {
+    const cells = parseCells(row);
+    if(ri === 0){
+      html += '<tr>';
+      cells.forEach(cell => {
+        html += `<th style="background:${BLU};color:#ffffff;padding:8px 12px;text-align:left;font-weight:700;border:1px solid ${BLU};font-size:12px;">${esc(cell)}</th>`;
+      });
+      html += '</tr>';
+    } else {
+      const bg = ri%2===0 ? VLBL : '#ffffff';
+      html += '<tr>';
+      cells.forEach(cell => {
+        html += `<td style="border:1px solid ${LBLU};padding:7px 12px;background:${bg};font-size:12px;color:#1c1a17;">${esc(cell)}</td>`;
+      });
+      html += '</tr>';
+    }
+  });
+  html += '</table>';
+  return html;
+}
+
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Wrap renderEmail to also build HTML and save to hist
+const _origGenEmail = genEmail;
+
+function setTele(val){
+  el('tele-si').classList.toggle('prop-a', val==='SI');
+  el('tele-no').classList.toggle('prop-a', val==='NO');
+  window._telemedida = val;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// MULTI-EQUIPO — Contadores y Conversores adicionales
+// ══════════════════════════════════════════════════════════════════════
+let _extraCOs = [];  // [{id, prop, tech, cal, dn, pn, serie, av, cad, res, ps}]
+let _extraCRs = [];  // [{id, prop, tipo, serie, av, cad, consumo}]
+let _extraCoIdx = 0;
+let _extraCrIdx = 0;
+
+function showAddButtons(){
+  const hasCO = S.equipSel==='co'||S.equipSel==='co-cr';
+  const haCR  = S.equipSel==='cr'||S.equipSel==='co-cr';
+  el('btn-add-co-wrap').style.display = hasCO ? '' : 'none';
+  el('btn-add-cr-wrap').style.display = haCR  ? '' : 'none';
+  if(!hasCO){ _extraCOs=[]; el('extra-co-container').innerHTML=''; }
+  if(!haCR) { _extraCRs=[]; el('extra-cr-container').innerHTML=''; }
+}
+
+// ── EXTRA CONTADOR ────────────────────────────────────────────────────
+function addExtraCO(){
+  _extraCoIdx++;
+  const id = _extraCoIdx;
+  const num = _extraCOs.length + 2; // "Contador 2", "Contador 3"...
+  _extraCOs.push({id, prop:null, tech:null, cal:null, dn:null, pn:null, serie:'', av:null, cad:null, res:null, ps:null});
+
+  const card = document.createElement('div');
+  card.className = 'extra-card';
+  card.id = `extra-co-${id}`;
+  card.innerHTML = `
+    <div class="extra-card-hdr">
+      <div class="extra-card-num">${num}</div>
+      <h2 style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">Contador ${num} (CO)</h2>
+      <button class="btn-remove-equip" onclick="removeExtraCO(${id})">✕ Eliminar</button>
+    </div>
+    <div class="cb">
+      <div class="g3" style="margin-bottom:12px;">
+        <div class="f">
+          <label>Propiedad</label>
+          <div class="tog">
+            <button class="tog-btn" id="xco${id}-p-cli" onclick="setExtroCOProp(${id},'CLI')">👤 Cliente</button>
+            <button class="tog-btn" id="xco${id}-p-alq" onclick="setExtroCOProp(${id},'ALQ')">🏢 Alquiler Nedgia</button>
+          </div>
+        </div>
+        <div class="f">
+          <label>Tecnología</label>
+          <select id="xco${id}-tech" onchange="onExtraCOTech(${id})">
+            <option value="">— Seleccionar —</option>
+            <option value="MEMBRANA">Membrana deformable</option>
+            <option value="PISTONES">Pistones (despl. rotativo)</option>
+            <option value="TURBINA">Turbina</option>
+          </select>
+        </div>
+        <div class="f">
+          <label>Calibre</label>
+          <select id="xco${id}-cal" onchange="onExtraCOCal(${id})"><option value="">—</option></select>
+        </div>
+        <div class="f">
+          <label>DN</label>
+          <select id="xco${id}-dn" onchange="onExtraCODN(${id})"><option value="">—</option></select>
+        </div>
+        <div class="f">
+          <label>PN</label>
+          <select id="xco${id}-pn" onchange="recalc()"><option value="">—</option></select>
+        </div>
+        <div class="f">
+          <label>Nº Serie</label>
+          <input id="xco${id}-serie" placeholder="Nº serie" oninput="recalc()">
+        </div>
+        <div class="f">
+          <label>¿Averiado?</label>
+          <div class="tog">
+            <button class="tog-btn" id="xco${id}-av-si" onclick="setExtraCOYN(${id},'av','SI')">⚠ Sí</button>
+            <button class="tog-btn" id="xco${id}-av-no" onclick="setExtraCOYN(${id},'av','NO')">✓ No</button>
+          </div>
+        </div>
+        <div class="f">
+          <label>¿Caducado?</label>
+          <div class="tog">
+            <button class="tog-btn" id="xco${id}-cad-si" onclick="setExtraCOYN(${id},'cad','SI')">⚠ Sí</button>
+            <button class="tog-btn" id="xco${id}-cad-no" onclick="setExtraCOYN(${id},'cad','NO')">✓ No</button>
+          </div>
+        </div>
+        <div class="f">
+          <label>¿Tiene contador de reserva?</label>
+          <div class="tog">
+            <button class="tog-btn" id="xco${id}-res-si" onclick="setExtraCOYN(${id},'res','SI')">✓ Sí</button>
+            <button class="tog-btn" id="xco${id}-res-no" onclick="setExtraCOYN(${id},'res','NO')">✗ No</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  el('extra-co-container').appendChild(card);
+  recalc();
+}
+
+function removeExtraCO(id){
+  _extraCOs = _extraCOs.filter(x=>x.id!==id);
+  const card = el(`extra-co-${id}`);
+  if(card) card.remove();
+  // Renumber remaining
+  el('extra-co-container').querySelectorAll('.extra-card').forEach((c,i)=>{
+    c.querySelector('.extra-card-num').textContent = i+2;
+    c.querySelector('h2').textContent = `Contador ${i+2} (CO)`;
+  });
+  recalc();
+}
+
+function setExtroCOProp(id, val){
+  el(`xco${id}-p-cli`).classList.toggle('prop-a', val==='CLI');
+  el(`xco${id}-p-alq`).classList.toggle('prop-a', val==='ALQ');
+  const co = _extraCOs.find(x=>x.id===id);
+  if(co) co.prop = val;
+  recalc();
+}
+function setExtraCOYN(id, key, val){
+  el(`xco${id}-${key}-si`).classList.remove('yn-y','yn-n');
+  el(`xco${id}-${key}-no`).classList.remove('yn-y','yn-n');
+  if(val==='SI') el(`xco${id}-${key}-si`).classList.add('yn-y');
+  else           el(`xco${id}-${key}-no`).classList.add('yn-n');
+  const co = _extraCOs.find(x=>x.id===id);
+  if(co) co[key] = val;
+  recalc();
+}
+function onExtraCOTech(id){
+  const tech = el(`xco${id}-tech`).value;
+  const co = _extraCOs.find(x=>x.id===id);
+  if(co){ co.tech=tech; co.cal=null; co.dn=null; co.pn=null; }
+  fillSel(`xco${id}-cal`, tech?Object.keys(PRECIOS_ALQ[tech]||{}):'Calibre', 'Calibre');
+  fillSel(`xco${id}-dn`, [], 'DN', DN_LABEL);
+  const pnSel = el(`xco${id}-pn`);
+  if(tech==='MEMBRANA'){ pnSel.innerHTML='<option value="0.5">0,5 bar (BP)</option>'; pnSel.disabled=true; }
+  else { fillSel(`xco${id}-pn`,[],'PN',PN_LABEL); pnSel.disabled=false; }
+  recalc();
+}
+function onExtraCOCal(id){
+  const tech=el(`xco${id}-tech`).value, cal=el(`xco${id}-cal`).value;
+  const co=_extraCOs.find(x=>x.id===id);
+  if(co){ co.cal=cal; co.dn=null; co.pn=null; }
+  const dns = tech&&cal ? Object.keys((PRECIOS_ALQ[tech]||{})[cal]||{}) : [];
+  fillSel(`xco${id}-dn`, dns, 'DN', DN_LABEL);
+  fillSel(`xco${id}-pn`, [], 'PN', PN_LABEL);
+  recalc();
+}
+function onExtraCODN(id){
+  const tech=el(`xco${id}-tech`).value, cal=el(`xco${id}-cal`).value, dn=el(`xco${id}-dn`).value;
+  const co=_extraCOs.find(x=>x.id===id);
+  if(co){ co.dn=dn; co.pn=null; }
+  const pnSel=el(`xco${id}-pn`);
+  if(tech==='MEMBRANA'){
+    pnSel.innerHTML='<option value="0.5">0,5 bar (BP)</option>'; pnSel.disabled=true; pnSel.value='0.5';
+  } else {
+    const pns = tech&&cal&&dn ? Object.keys(((PRECIOS_ALQ[tech]||{})[cal]||{})[dn]||{}) : [];
+    fillSel(`xco${id}-pn`, pns, 'PN', PN_LABEL); pnSel.disabled=false;
+  }
+  recalc();
+}
+
+// ── EXTRA CONVERSOR ────────────────────────────────────────────────────
+function addExtraCR(){
+  _extraCrIdx++;
+  const id = _extraCrIdx;
+  const num = _extraCRs.length + 2;
+  _extraCRs.push({id, prop:null, tipo:'PTZ', serie:'', av:null, cad:null, consumo:''});
+
+  const card = document.createElement('div');
+  card.className = 'extra-card';
+  card.id = `extra-cr-${id}`;
+  card.innerHTML = `
+    <div class="extra-card-hdr">
+      <div class="extra-card-num">${num}</div>
+      <h2 style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">Conversor ${num} (CR)</h2>
+      <button class="btn-remove-equip" onclick="removeExtraCR(${id})">✕ Eliminar</button>
+    </div>
+    <div class="cb">
+      <div class="g3" style="margin-bottom:12px;">
+        <div class="f">
+          <label>Propiedad</label>
+          <div class="tog">
+            <button class="tog-btn" id="xcr${id}-p-cli" onclick="setExtroCRProp(${id},'CLI')">👤 Cliente</button>
+            <button class="tog-btn" id="xcr${id}-p-alq" onclick="setExtroCRProp(${id},'ALQ')">🏢 Alquiler Nedgia</button>
+          </div>
+        </div>
+        <div class="f">
+          <label>Tipo</label>
+          <select id="xcr${id}-tipo" onchange="recalc()">
+            <option value="PTZ">PTZ</option><option value="PT">PT</option>
+          </select>
+        </div>
+        <div class="f">
+          <label>Nº Serie</label>
+          <input id="xcr${id}-serie" placeholder="Nº serie" oninput="recalc()">
+        </div>
+        <div class="f">
+          <label>¿Averiado?</label>
+          <div class="tog">
+            <button class="tog-btn" id="xcr${id}-av-si" onclick="setExtraCRYN(${id},'av','SI')">⚠ Sí</button>
+            <button class="tog-btn" id="xcr${id}-av-no" onclick="setExtraCRYN(${id},'av','NO')">✓ No</button>
+          </div>
+        </div>
+        <div class="f">
+          <label>¿Caducado?</label>
+          <div class="tog">
+            <button class="tog-btn" id="xcr${id}-cad-si" onclick="setExtraCRYN(${id},'cad','SI')">⚠ Sí</button>
+            <button class="tog-btn" id="xcr${id}-cad-no" onclick="setExtraCRYN(${id},'cad','NO')">✓ No</button>
+          </div>
+        </div>
+        <div class="f">
+          <label>Consumo anual (GWh/año)</label>
+          <input id="xcr${id}-consumo" type="number" placeholder="60" oninput="recalc()">
+        </div>
+      </div>
+    </div>`;
+  el('extra-cr-container').appendChild(card);
+  recalc();
+}
+
+function removeExtraCR(id){
+  _extraCRs = _extraCRs.filter(x=>x.id!==id);
+  const card = el(`extra-cr-${id}`);
+  if(card) card.remove();
+  el('extra-cr-container').querySelectorAll('.extra-card').forEach((c,i)=>{
+    c.querySelector('.extra-card-num').textContent = i+2;
+    c.querySelector('h2').textContent = `Conversor ${i+2} (CR)`;
+  });
+  recalc();
+}
+function setExtroCRProp(id, val){
+  el(`xcr${id}-p-cli`).classList.toggle('prop-a', val==='CLI');
+  el(`xcr${id}-p-alq`).classList.toggle('prop-a', val==='ALQ');
+  const cr=_extraCRs.find(x=>x.id===id); if(cr) cr.prop=val;
+  recalc();
+}
+function setExtraCRYN(id, key, val){
+  el(`xcr${id}-${key}-si`).classList.remove('yn-y','yn-n');
+  el(`xcr${id}-${key}-no`).classList.remove('yn-y','yn-n');
+  if(val==='SI') el(`xcr${id}-${key}-si`).classList.add('yn-y');
+  else           el(`xcr${id}-${key}-no`).classList.add('yn-n');
+  const cr=_extraCRs.find(x=>x.id===id); if(cr) cr[key]=val;
+  recalc();
+}
+
+// ── HELPERS FOR EXTRA EQUIPMENT PRICING ──────────────────────────────
+function getExtraCOAlq(co){
+  if(!co.tech||!co.cal||!co.dn) return null;
+  const dnData=((PRECIOS_ALQ[co.tech]||{})[co.cal]||{})[co.dn]||{};
+  if(co.tech==='MEMBRANA'){ const k=Object.keys(dnData)[0]; return k?dnData[k].a:null; }
+  const pn=el(`xco${co.id}-pn`)?el(`xco${co.id}-pn`).value:co.pn;
+  return pn&&dnData[pn]?dnData[pn].a:null;
+}
+function getExtraCOCes(co){
+  if(!co.tech||!co.cal||!co.dn) return null;
+  const dnData=((PRECIOS_ALQ[co.tech]||{})[co.cal]||{})[co.dn]||{};
+  if(co.tech==='MEMBRANA') return null;
+  const pn=el(`xco${co.id}-pn`)?el(`xco${co.id}-pn`).value:co.pn;
+  return pn&&dnData[pn]?dnData[pn].c:null;
+}
+function getExtraCOComp(co){
+  return (PRECIOS_COMP[co.tech]||{})[co.cal]||null;
+}
+function getExtraCRAlq(cr){
+  const consumo=parseFloat(el(`xcr${cr.id}-consumo`)?el(`xcr${cr.id}-consumo`).value:'');
+  if(isNaN(consumo)) return null;
+  if(consumo<=5) return 55; if(consumo<=100) return 75;
+  if(consumo<=1000) return 117.32; return 206.47;
+}
+function getExtraCRTramo(cr){
+  const c=parseFloat(el(`xcr${cr.id}-consumo`)?el(`xcr${cr.id}-consumo`).value:'');
+  if(isNaN(c)) return '(consumo no indicado)';
+  if(c<=5) return '≤ 5 GWh/año'; if(c<=100) return '5–100 GWh/año';
+  if(c<=1000) return '100–1000 GWh/año'; return '> 1000 GWh/año';
+}
+
+// ── EMAIL GENERATION FOR EXTRA EQUIPMENT ─────────────────────────────
+function genExtraCOSection(co, num){
+  const lines=[];
+  const tech=co.tech||'', cal=co.cal||'', dn=el(`xco${co.id}-dn`)?el(`xco${co.id}-dn`).value:'', pn=el(`xco${co.id}-pn`)?el(`xco${co.id}-pn`).value:'';
+  const serie=el(`xco${co.id}-serie`)?el(`xco${co.id}-serie`).value:'';
+  const coDesc=[tech,cal,dn?`DN-${dn}`:''].filter(Boolean).join(' '); // PN omitido en correo
+  const avCO=co.av==='SI', cadCO=co.cad==='SI', esMembrana=tech==='MEMBRANA';
+  const tieneReserva=co.res==='SI';
+  const alqP=getExtraCOAlq(co), cesP=getExtraCOCes(co), comp=getExtraCOComp(co);
+
+  lines.push(`────────────────────────────────────────────────`);
+  lines.push(`CONTADOR ${num}${serie?' — N.º Serie '+serie:''}:`);
+  lines.push('');
+
+  if(co.prop==='ALQ'){
+    lines.push('El contador es de alquiler de Nedgia. Las verificaciones no tienen coste adicional para el cliente.');
+  } else if(co.prop==='CLI'){
+    if(esMembrana){
+      if(alqP){ lines.push(`Opción 1: Alquiler definitivo — ${alqP.toFixed(2).replace('.',',')} €/mes (sin IVA). Los contadores de membrana no se verifican, solo es posible el alquiler.`); }
+    } else if(avCO){
+      if(alqP){ lines.push(`Opción 1: Alquiler definitivo — ${alqP.toFixed(2).replace('.',',')} €/mes (sin IVA).`); }
+      if(cesP){ lines.push(`Opción 2: Cesión temporal para mantener la propiedad — ${cesP.toFixed(2).replace('.',',')} €/mes (facturado por días de uso).`); }
+    } else {
+      let nOpt=0;
+      if(alqP){ nOpt++; const peP=cadCO&&comp?comp.pe:null; lines.push(`Opción ${nOpt}: Alquiler definitivo — ${alqP.toFixed(2).replace('.',',')} €/mes (sin IVA)${peP?' + Prueba de entrada: '+peP+' €':''}.`); }
+      if(comp&&cesP){ nOpt++; lines.push(`Opción ${nOpt}: Comprobación con cesión temporal — ${comp.cs} € + cesión ${cesP.toFixed(2).replace('.',',')} €/mes${cadCO?' (PE incluida en precio comprobación)':''}.`); }
+      if(comp){ nOpt++; const lbl=tieneReserva?'(cliente tiene reserva)':'(bridas ciegas)'; lines.push(`Opción ${nOpt}: Comprobación sin cesión ${lbl} — ${comp.ss} €${cadCO?' (PE incluida)':''}.`); }
+    }
+  }
+  lines.push('');
+  return lines;
+}
+
+function genExtraCRSection(cr, num){
+  const lines=[];
+  const serie=el(`xcr${cr.id}-serie`)?el(`xcr${cr.id}-serie`).value:'';
+  const avCR=cr.av==='SI', cadCR=cr.cad==='SI';
+  const crP=getExtraCRAlq(cr), tramo=getExtraCRTramo(cr);
+
+  lines.push(`────────────────────────────────────────────────`);
+  lines.push(`CONVERSOR ${num}${serie?' — N.º Serie '+serie:''}:`);
+  lines.push('');
+
+  if(cr.prop==='ALQ'){
+    lines.push('El conversor es de alquiler de Nedgia. Las verificaciones no tienen coste adicional para el cliente.');
+  } else if(cr.prop==='CLI'){
+    if(avCR){
+      if(crP){ lines.push(`Opción 1: Alquiler del conversor — ${crP.toFixed(2).replace('.',',')} €/mes (sin IVA, tramo ${tramo}).`); }
+      lines.push('Opción 2: Cesión temporal para mantener la propiedad mientras se gestiona la reparación con el fabricante.');
+      lines.push('NOTA: Nedgia no puede reparar equipos de terceros.');
+    } else {
+      if(crP){ lines.push(`Opción 1: Alquiler del conversor — ${crP.toFixed(2).replace('.',',')} €/mes (sin IVA, tramo ${tramo})${cadCR?' (incluye comprobación previa al estar caducado)':''}.`); }
+      lines.push(`Opción 2: Comprobación metrológica "in situ" — 450 €/ud (sin IVA). Requiere vaina/termopozo y válvula de corte.`);
+    }
+  }
+  lines.push('');
+  return lines;
+}
+
+function onSobTech(){
+  const tech = document.getElementById('sob-tech').value;
+  fillSel('sob-cal', tech ? Object.keys(PRECIOS_ALQ[tech]||{}) : [], 'Calibre nuevo');
+  fillSel('sob-dn', [], 'DN nuevo', DN_LABEL);
+  const pnSel = document.getElementById('sob-pn');
+  fillSel('sob-pn', [], 'PN nuevo', PN_LABEL);
+  pnSel.disabled = false;
+  recalc();
+}
+function onSobCal(){
+  const tech = document.getElementById('sob-tech').value;
+  const cal  = document.getElementById('sob-cal').value;
+  const dns  = tech && cal ? Object.keys((PRECIOS_ALQ[tech]||{})[cal]||{}) : [];
+  fillSel('sob-dn', dns, 'DN nuevo', DN_LABEL);
+  fillSel('sob-pn', [], 'PN nuevo', PN_LABEL);
+  recalc();
+}
+function onSobDN(){
+  const tech = document.getElementById('sob-tech').value;
+  const cal  = document.getElementById('sob-cal').value;
+  const dn   = document.getElementById('sob-dn').value;
+  const pns  = tech && cal && dn ? Object.keys(((PRECIOS_ALQ[tech]||{})[cal]||{})[dn]||{}) : [];
+  const pnSel = document.getElementById('sob-pn');
+  if(tech==='MEMBRANA'){ pnSel.innerHTML='<option value="0.5">0,5 bar (BP)</option>'; pnSel.disabled=true; }
+  else { fillSel('sob-pn', pns, 'PN nuevo', PN_LABEL); pnSel.disabled=false; }
+  recalc();
+}
+function getSobAlqPrecio(){
+  const tech = document.getElementById('sob-tech') ? document.getElementById('sob-tech').value : '';
+  const cal  = document.getElementById('sob-cal')  ? document.getElementById('sob-cal').value  : '';
+  const dn   = document.getElementById('sob-dn')   ? document.getElementById('sob-dn').value   : '';
+  const pn   = document.getElementById('sob-pn')   ? document.getElementById('sob-pn').value   : '';
+  if(!tech||!cal||!dn) return null;
+  const dnData = ((PRECIOS_ALQ[tech]||{})[cal]||{})[dn]||{};
+  if(tech==='MEMBRANA'){ const k=Object.keys(dnData)[0]; return k?dnData[k].a:null; }
+  return pn && dnData[pn] ? dnData[pn].a : null;
+}
+function getSobDesc(){
+  const tech = document.getElementById('sob-tech') ? document.getElementById('sob-tech').value : '';
+  const cal  = document.getElementById('sob-cal')  ? document.getElementById('sob-cal').value  : '';
+  const dn   = document.getElementById('sob-dn')   ? document.getElementById('sob-dn').value   : '';
+  const pn   = document.getElementById('sob-pn')   ? document.getElementById('sob-pn').value   : '';
+  return [tech, cal, dn?`DN-${dn}`:''].filter(Boolean).join(' '); // PN omitido en correo
+}
+
+function resetAll(){
+  if(!confirm('¿Vaciar todos los campos y empezar de nuevo?')) return;
+  // Reset all input fields and selects
+  document.querySelectorAll('input:not([type=hidden]), select').forEach(el => {
+    if(el.type==='checkbox') el.checked=false;
+    else el.value='';
+  });
+  // Reset all toggle buttons
+  document.querySelectorAll('.tog-btn, .es-btn, .pb-step').forEach(b => {
+    b.classList.remove('prop-a','yn-y','yn-n','active','done');
+  });
+  // Reset state
+  S.equipSel=null; S.coProp=null; S.coTech=null; S.coCal=null; S.coDN=null; S.coPN=null;
+  S.coAv=null; S.coCad=null; S.crProp=null; S.crAv=null; S.crCad=null;
+  window._coExc=null; window._coSob=null; window._coPS=null; window._crCal=null;
+  window._telemedida=null;
+  // Remove extra equipment cards
+  _extraCOs=[]; _extraCRs=[];
+  document.getElementById('extra-co-container').innerHTML='';
+  document.getElementById('extra-cr-container').innerHTML='';
+  // Hide cards
+  ['card-co','card-cr','card-diag','btn-add-co-wrap','btn-add-cr-wrap',
+   'sob-nuevo-wrap','email-w'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.style.display='none';
+  });
+  document.getElementById('email-w').classList.remove('open');
+  // Reset alerts
+  ['co-alerts','cr-alerts'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.innerHTML='';
+  });
+  // Reset progress bar
+  document.querySelectorAll('.pb-step').forEach((s,i) => {
+    s.classList.remove('done','active');
+    if(i===0) s.classList.add('active');
+  });
+  recalcSidebar();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+
+// ══════════════════════════════════════════════════════════════════════
+// SEGUNDO CORREO — Respuesta de aceptación
+// ══════════════════════════════════════════════════════════════════════
+let _respHistData = null;
+
+function parseSecciones(emailTxt){
+  // Parse email into sections, each with their own options
+  const lines = (emailTxt||'').split('\n');
+  const sections = [];
+  let current = null;
+
+  lines.forEach(line => {
+    // Detect section headers
+    const isCO  = /^CONTADOR\s*[\d]*:/i.test(line) || line.startsWith('CONTADOR:') || line.startsWith('CONTADOR 1:') || line.startsWith('CONTADOR 2:');
+    const isCR  = /^CONVERSOR/i.test(line);
+    const isPS  = /^PRUEBA EN SERIE/i.test(line);
+    const isCal = /^CALIBRACIÓN LAZO/i.test(line);
+    const isRem = /^REMOTA|^UNIDAD REMOTA DE TELEMEDIDA|^TELEMEDIDA/i.test(line);
+
+    if(isCO||isCR||isPS||isCal||isRem){
+      if(current) sections.push(current);
+      const tipo = isCO?'contador': isCR?'conversor': isPS?'prueba_serie': isRem?'remota':'calibracion';
+      current = {tipo, header: line, opciones:[]};
+      return;
+    }
+    // Detect numbered options within current section
+    if(current){
+      // Remota: create default option from price line
+      if(current.tipo==='remota' && current.opciones.length===0 && line.includes('precio del alquiler')){
+        current.opciones.push({num:'1', desc:'Alquiler Unidad Remota de Telemedida', label:'Opción 1: Alquiler Unidad Remota de Telemedida'});
+      }
+      const m = line.match(/^Opción (\d+):(.*)/);
+      if(m){
+        const desc = m[2].trim().substring(0,80)+(m[2].trim().length>80?'...':'');
+        current.opciones.push({num:m[1], desc, label:`Opción ${m[1]}: ${desc}`});
+      }
+    }
+  });
+  if(current) sections.push(current);
+
+  // If no sections found but email has options, create a generic section
+  if(sections.length===0){
+    const opts=[];
+    lines.forEach(line=>{
+      const m=line.match(/^Opción (\d+):(.*)/);
+      if(m) opts.push({num:m[1],desc:m[2].trim().substring(0,80),label:`Opción ${m[1]}: ${m[2].trim().substring(0,80)}`});
+    });
+    if(opts.length>0) sections.push({tipo:'general',header:'',opciones:opts});
+    else sections.push({tipo:'unica',header:'',opciones:[]});
+  }
+  return sections;
+}
+
+function openRespModal(h){
+  _respHistData = h;
+
+  // Fill context
+  const ctx = document.getElementById('resp-context');
+  ctx.innerHTML = `<b>CUPS:</b> ${h.cups||'—'} &nbsp;·&nbsp; <b>OC:</b> ${h.oc||'—'} &nbsp;·&nbsp; <b>Empresa:</b> ${h.empresa||'—'}<br>
+    <b>Asunto:</b> ${h.asunto||'—'}<br>
+    <b>Equipos:</b> ${h.desc||'—'}`;
+
+  // Build dynamic section selects from actual email
+  const secciones = parseSecciones(h.emailTxt);
+  const secContainer = document.getElementById('resp-sec-container');
+  secContainer.innerHTML = '';
+
+  secciones.forEach((sec, idx) => {
+    const label = sec.tipo==='contador'?'Opción elegida — Contador':
+                  sec.tipo==='conversor'?'Opción elegida — Conversor/Corrector':
+                  sec.tipo==='prueba_serie'?'Prueba en serie':
+                  sec.tipo==='remota'?'Opción elegida — Unidad Remota/Telemedida':
+                  sec.tipo==='calibracion'?'Calibración CR':'Opción elegida';
+
+    const div = document.createElement('div');
+    div.className = 'resp-field';
+    div.innerHTML = `<label>${label} *</label>`;
+
+    if(sec.opciones.length===0){
+      // No options - just confirmation
+      const inp = document.createElement('input');
+      inp.type='text'; inp.readOnly=true;
+      inp.value='Confirmación de trabajos (sin opciones)';
+      inp.style.background='#e8eef7'; inp.style.color='#1A3F6B';
+      inp.dataset.secIdx=idx; inp.dataset.secTipo=sec.tipo;
+      inp.className='resp-sec-sel';
+      div.appendChild(inp);
+    } else {
+      const sel2 = document.createElement('select');
+      sel2.dataset.secIdx=idx; sel2.dataset.secTipo=sec.tipo;
+      sel2.className='resp-sec-sel';
+      sel2.innerHTML='<option value="">— Seleccionar —</option>';
+      sec.opciones.forEach(o=>{
+        const opt=document.createElement('option');
+        opt.value=o.num; opt.textContent=o.label;
+        sel2.appendChild(opt);
+      });
+      div.appendChild(sel2);
+    }
+    secContainer.appendChild(div);
+  });
+
+  // Actualizar campo de empresa y presión al cambiar cada opción seleccionada
+  setTimeout(()=>{
+    document.querySelectorAll('.resp-sec-sel').forEach(sel=>{
+      sel.addEventListener('change', () => { checkSelFields(); });
+    });
+    checkSelFields(); // estado inicial al abrir
+  }, 100);
+  // Clear other fields
+  ['resp-operador','resp-ids','resp-verif','resp-verif-id'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value='';
+  });
+  document.getElementById('resp-modal').style.display='flex';
+  document.getElementById('resp-email-wrap').style.display='none';
+  document.getElementById('resp-email-card').innerHTML='';
+}
+
+function closeRespModal(){
+  document.getElementById('resp-modal').style.display='none';
+}
+
+// Defer modal listeners until DOM ready
+document.addEventListener('DOMContentLoaded', function(){
+  const rm = document.getElementById('resp-modal');
+  if(rm) rm.addEventListener('click', function(e){ if(e.target===this) closeRespModal(); });
+});
+
+function generarRespuesta(){
+  const h = _respHistData;
+  if(!h){ alert('No hay datos de consulta.'); return; }
+
+  const secSels = document.querySelectorAll('.resp-sec-sel');
+  const secChoices = Array.from(secSels).map(el=>({
+    tipo: el.dataset.secTipo,
+    val: el.value||'unica',
+    txt: el.tagName==='SELECT'?(el.options[el.selectedIndex]?.textContent||''):el.value
+  }));
+
+  const operador = document.getElementById('resp-operador').value.trim();
+  const ids      = document.getElementById('resp-ids').value.trim();
+  const verif    = document.getElementById('resp-verif').value.trim();
+  const verifId  = document.getElementById('resp-verif-id').value.trim();
+  // Detectar si la empresa asignada es verificadora de comprobación o instaladora de alquiler
+  const COMP_EMPRESAS = ['MUTSA','TEYCO','ISCAL'];
+  const esEmpresaComp = COMP_EMPRESAS.includes(operador);
+
+  if(!operador||!ids){ alert('Por favor rellena el operador y el ID de OT.'); return; }
+  if(secChoices.some(s=>s.tipo!=='prueba_serie'&&s.tipo!=='unica'&&s.val==='')){ alert('Por favor selecciona la opción elegida para cada equipo.'); return; }
+
+  const cups = h.cups||'[CUPS]', oc = h.oc||'[OC]';
+  const secciones = parseSecciones(h.emailTxt||'');
+
+  // Classify each choice
+  const coChoice = secChoices.find(s=>s.tipo==='contador');
+  const crChoice = secChoices.find(s=>s.tipo==='conversor');
+  const psChoice = secChoices.find(s=>s.tipo==='prueba_serie'||s.tipo==='unica');
+  const remChoice = secChoices.find(s=>s.tipo==='remota');
+
+  const coTxt = (coChoice?.txt||'').toLowerCase();
+  const crTxt = (crChoice?.txt||'').toLowerCase();
+
+  const coAlq  = coTxt.includes('alquiler');
+  const coVerf = coTxt.includes('comprobación')||coTxt.includes('sin cesión')||coTxt.includes('cesión');
+  const crAlq  = crTxt.includes('alquiler');
+  const crVerf = crTxt.includes('comprobación')||crTxt.includes('calibración')||crTxt.includes('in situ');
+  const crCes  = crTxt.includes('cesión');
+
+  const soloContador  = !!coChoice && !crChoice;
+  const soloConversor = !!crChoice && !coChoice;
+  const combinado     = !!coChoice && !!crChoice;
+
+  // "Van en copia" rules:
+  // QUITAR: solo contador (cualquier opción), CO+CR ambos alquiler
+  // MANTENER: CO+CR mixto, solo conversor, prueba en serie
+  const gestores = !(soloContador) && !(combinado && coAlq && crAlq);
+
+  let L = [];
+  L.push('Buenos días,');
+  L.push('');
+
+  const empresaLabel = esEmpresaComp ? 'empresa verificadora' : 'operador de área';
+
+  if(combinado){
+    L.push(`Atendiendo a la solicitud recibida, informarles que hemos asignado las órdenes de trabajo (ID: ${ids}) a nuestro ${empresaLabel} ${operador}.`);
+    L.push('Serán ellos quienes les contacten para la gestión de accesos a las instalaciones y se puedan coordinar los trabajos indicados tanto para la instalación del Contador como la del Conversor.');
+  } else {
+    L.push(`Atendiendo a la solicitud recibida, informarles que hemos asignado las órdenes de trabajo (ID: ${ids}) a nuestro ${empresaLabel} ${operador}.`);
+    L.push('Serán ellos quienes les contacten para la gestión de accesos a las instalaciones y se puedan coordinar los trabajos indicados.');
+  }
+  L.push('');
+
+  let incluyeContrato = false;
+  let bullets = [];
+
+  // ── SOLO CONTADOR ──────────────────────────────────────────────────
+  if(soloContador){
+    if(coAlq){
+      bullets.push('Se procederá a la sustitución del contador en régimen de alquiler definitivo.');
+      incluyeContrato = true;
+    } else if(coVerf && esEmpresaComp){
+      bullets.push(`Los trabajos de comprobación metrológica del contador han sido asignados a ${operador}${verifId?' (ID OT: '+verifId+')':''}, nuestra empresa verificadora autorizada.`);
+    }
+  }
+
+  // ── SOLO CONVERSOR ─────────────────────────────────────────────────
+  if(soloConversor){
+    if(crAlq && verif){
+      bullets.push(`Previamente al montaje del conversor de alquiler se ha de verificar el equipo del cliente por nuestro Verificador ${verif}${verifId?' (ID OT: '+verifId+')':''}, que igualmente tiene operación asignada al respecto.`);
+      bullets.push(`Una vez verificado este conversor en propiedad se programará por ${operador} la sustitución del mismo según lo indicado.`);
+      incluyeContrato = true;
+    } else if(crAlq){
+      bullets.push('Se procederá a la instalación del conversor en régimen de alquiler.');
+      incluyeContrato = true;
+    } else if(crVerf && verif){
+      bullets.push(`Los trabajos de verificación del conversor han sido asignados a nuestro Verificador autorizado – ${verif}${verifId?' (ID OT: '+verifId+')':''}.`);
+      bullets.push('Serán ellos quienes les contacten para coordinar el acceso a las instalaciones y ejecutar los trabajos de verificación.');
+    } else if(crCes){
+      bullets.push('Se procederá a la instalación del conversor en régimen de CESIÓN.');
+      bullets.push('El Mantenedor/Instalador del Consumidor realizará a continuación el montaje de los conversores en propiedad verificados.');
+      bullets.push('El Técnico de NEDGIA que asista revisará el montaje y solicitará copia de los certificados de conversor.');
+    }
+  }
+
+  // ── CONTADOR + CONVERSOR ────────────────────────────────────────────
+  if(combinado){
+    // CO bullet
+    if(coAlq){
+      bullets.push('Se procederá a la sustitución del contador en régimen de alquiler definitivo.');
+      incluyeContrato = true;
+    } else if(coVerf && esEmpresaComp){
+      bullets.push(`Los trabajos de comprobación metrológica del contador han sido asignados a ${operador}${verifId?' (ID OT: '+verifId+')':''}, nuestra empresa verificadora autorizada.`);
+    }
+    // CR bullet
+    if(crAlq && verif){
+      bullets.push(`Previamente al montaje del conversor de alquiler se ha de verificar el equipo del cliente por nuestro Verificador ${verif}${verifId?' (ID OT: '+verifId+')':''}, que igualmente tiene operación asignada al respecto.`);
+      bullets.push(`Una vez verificado este conversor en propiedad se programará por ${operador} la sustitución del mismo según lo indicado.`);
+      incluyeContrato = true;
+    } else if(crAlq){
+      bullets.push('Se procederá a la instalación del conversor en régimen de alquiler.');
+      incluyeContrato = true;
+    } else if(crVerf && verif){
+      bullets.push(`Los trabajos de verificación del conversor han sido asignados a nuestro Verificador autorizado – ${verif}${verifId?' (ID OT: '+verifId+')':''}.`);
+      bullets.push('Serán ellos quienes les contacten para coordinar el acceso a las instalaciones y ejecutar los trabajos de verificación.');
+    } else if(crCes){
+      bullets.push('Se procederá a la instalación del conversor en régimen de CESIÓN.');
+    }
+  }
+
+  // ── REMOTA ──────────────────────────────────────────────────────────
+  if(remChoice && remChoice.val!==''){
+    const remTxt = (remChoice.txt||'').toLowerCase();
+    if(remTxt.includes('alquiler')||remTxt.includes('opción 1')){
+      bullets.push('Se procederá a la instalación de la Unidad Remota de Telemedida en régimen de alquiler.');
+      incluyeContrato = true;
+    } else {
+      bullets.push('Se coordinarán los trabajos de instalación de la Unidad Remota de Telemedida.');
+    }
+  }
+  // ── PRUEBA EN SERIE ─────────────────────────────────────────────────
+  if(psChoice){
+    bullets.push('Se coordinarán los trabajos solicitados con el consumidor.');
+  }
+
+  bullets.forEach(b => L.push(`·       ${b}`));
+  L.push('');
+
+  if(gestores) L.push('Van en copia los Gestores de Zona que coordinarán las operaciones indicadas.');
+  if(incluyeContrato) L.push('En paralelo y por esta misma vía le haremos llegar el contrato de alquiler del equipo de medida.');
+  L.push('Si hubiera algún comentario o duda o si hubiera algún problema en su ejecución no duden en contactar con nosotros.');
+  L.push('');
+  L.push('Un saludo,');
+
+  // Build HTML
+  const BLU = '#1A3F6B';
+  let html = `<div style="font-family:Arial,sans-serif;font-size:13px;line-height:1.7;color:#1c1a17;">`;
+  L.forEach(line => {
+    if(!line.trim()){ html += '<p style="margin:0;height:8px;"></p>'; return; }
+    if(line.startsWith('·')){
+      html += `<p style="margin:3px 0 3px 20px;color:#1c1a17;">${esc(line)}</p>`; return;
+    }
+    if(line==='Un saludo,'){ html += `<p style="margin:14px 0 4px;">${esc(line)}</p>`; return; }
+    html += `<p style="margin:0 0 5px;color:#1c1a17;">${esc(line)}</p>`;
+  });
+  html += '</div>';
+
+  const asunto = `RE: Oferta Equipos Medida — CUPS ${cups} / OC ${oc}`;
+  const wrap = document.getElementById('resp-email-wrap');
+  const card = document.getElementById('resp-email-card');
+  card.innerHTML = `
+    <div style="background:#fff;border:1px solid #ccd6e8;border-radius:4px;overflow:hidden;margin-top:10px;">
+      <div style="background:#1a6038;color:#fff;padding:11px 16px;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;">
+        <span>✉ Segundo correo — Respuesta de aceptación</span>
+        <button onclick="copiarResp()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;font-family:monospace;font-size:10px;padding:3px 10px;cursor:pointer;border-radius:2px;">Copiar</button>
+      </div>
+      <div style="padding:11px 16px;background:#f4f6f9;border-bottom:1px solid #ccd6e8;font-size:12px;line-height:2.2;">
+        <b style="color:#5a7090;font-weight:500;display:inline-block;width:58px;">Para:</b> ${h.emailCliente||'cliente@empresa.com'}<br>
+        <b style="color:#5a7090;font-weight:500;display:inline-block;width:58px;">CC:</b> umedicion@nedgia.es<br>
+        <b style="color:#5a7090;font-weight:500;display:inline-block;width:58px;">Asunto:</b> ${asunto}
+      </div>
+      <div id="resp-email-body-html" style="padding:18px;">${html}</div>
+      <div id="resp-email-body-txt" style="display:none;">${L.join('\n')}</div>
+    </div>`;
+  wrap.style.display='block';
+  wrap.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function copiarResp(){
+  const html = document.getElementById('resp-email-body-html').innerHTML;
+  const txt  = document.getElementById('resp-email-body-txt').textContent;
+  const blob    = new Blob([html], {type:'text/html'});
+  const blobTxt = new Blob([txt],  {type:'text/plain'});
+  navigator.clipboard.write([new ClipboardItem({'text/html':blob,'text/plain':blobTxt})]).then(()=>{
+    const b = document.querySelector('#resp-email-card button');
+    if(b){ b.textContent='✓ Copiado'; setTimeout(()=>b.textContent='Copiar',2000); }
+  }).catch(()=>{
+    navigator.clipboard.writeText(txt).then(()=>alert('✓ Copiado como texto.'));
+  });
+}
+
+
+// ── PARSER LOCAL OBSERVACIONES CR ────────────────────────────────────
+let _crObsParsed = {};
+
+function parsearObsResp(){
+  const txt = document.getElementById('resp-obs').value;
+  if(!txt.trim()){ alert('Pega primero el texto de las observaciones.'); return; }
+
+  const res = {};
+
+  // Modelo: palabras como EK-230, EK-220, CORUS, ELSTER, FLOW, etc.
+  const mModelo = txt.match(/modelo\s+([A-Z][A-Z0-9\-]+(?:\s+[A-Z]{2,})?)/i);
+  if(mModelo) res.modelo = mModelo[1].trim();
+
+  // Nº serie: buscar "nº serie:" o "n serie:" o "serie:" seguido de valor
+  const mSerie = txt.match(/n[ºo°]?\.?\s*serie\s*[:=]?\s*([A-Z0-9\/\-]+)/i);
+  if(mSerie){ res.serie = mSerie[1].trim(); }
+
+  // Presión: "X,X bar abs" o "XX bar abs" o "ajustado a X,X"
+  const mPresion = txt.match(/(?:ajustado\s+a\s+)?(\d+[,.]\d+)\s*bar\s*abs/i);
+  if(mPresion) res.presion = mPresion[1].replace(',','.') + ' bar abs.';
+
+  // Fecha caducidad: "caduca el DD/MM/YYYY" o "caducidad DD/MM/YYYY"
+  const mFecha = txt.match(/caduc[ao]\s+(?:el\s+)?(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/i);
+  if(mFecha){
+    res.fechaCaducidad = mFecha[1];
+    // Store caducado info only (don't modify main form)
+  }
+
+  // Contacto: nombre (línea antes del email o teléfono)
+  const mEmail = txt.match(/([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/);
+  if(mEmail) res.emailContacto = mEmail[1];
+
+  // Teléfono: patrones móvil/fijo
+  const mTelf = txt.match(/(?:tfno|tel[eé]?f?|movil|móvil)[^:]*:\s*([+\d][\d\s\.\-]{7,})/i);
+  if(mTelf) res.telefono = mTelf[1].trim();
+
+  // Nombre de contacto: primera línea que no sea todo mayúsculas y no sea empresa
+  const lineas = txt.split('\n').map(l=>l.trim()).filter(l=>l.length>3&&l.length<60);
+  const nombreCandidato = lineas.find(l=> 
+    /^[A-ZÁÉÍÓÚÑÜ][a-záéíóúñü]/.test(l) &&
+    !l.includes('@') && !l.includes(':') && !/^\d/.test(l) && 
+    !/(S\.L|S\.A|MODELO|COMPROBACION|SERIE)/i.test(l)
+  );
+  if(nombreCandidato) res.nombreContacto = nombreCandidato;
+
+  // Store parsed data
+  _crObsParsed = res;
+
+  // Show results
+  const lines2 = [];
+  if(res.modelo)        lines2.push(`✓ Modelo: <b>${res.modelo}</b>`);
+  if(res.serie)         lines2.push(`✓ Nº Serie: <b>${res.serie}</b> (rellenado automáticamente)`);
+  if(res.presion)       lines2.push(`✓ Presión ajuste: <b>${res.presion}</b>`);
+  if(res.fechaCaducidad)lines2.push(`✓ Fecha caducidad: <b>${res.fechaCaducidad}</b>${res.fechaCaducidad?' → Caducado marcado automáticamente':''}`);
+  if(res.nombreContacto)lines2.push(`✓ Contacto: <b>${res.nombreContacto}</b>`);
+  if(res.emailContacto) lines2.push(`✓ Email contacto: <b>${res.emailContacto}</b>`);
+  if(res.telefono)      lines2.push(`✓ Teléfono: <b>${res.telefono}</b>`);
+
+  const div = document.getElementById('resp-obs-result');
+  if(lines2.length){
+    div.innerHTML = lines2.join('<br>');
+    div.style.display='block';
+  } else {
+    div.innerHTML='⚠ No se encontraron datos reconocibles. Comprueba el formato del texto.';
+    div.style.background='var(--yellow-bg)'; div.style.borderColor='var(--gold-b)'; div.style.color='var(--gold)';
+    div.style.display='block';
+  }
+  recalc();
+}
+
+
+function checkPresionField(){
+  const sels = document.querySelectorAll('.resp-sec-sel');
+  let showPresion = false;
+  sels.forEach(sel => {
+    if(sel.dataset.secTipo==='conversor'){
+      const txt = (sel.tagName==='SELECT'?(sel.options[sel.selectedIndex]?.textContent||''):sel.value).toLowerCase();
+      if(txt.includes('alquiler')) showPresion = true;
+    }
+  });
+  const wrap = document.getElementById('resp-presion-wrap');
+  if(wrap) wrap.style.display = showPresion ? '' : 'none';
+}
+
+function checkCompField(){
+  // sin lógica — campo de empresa es siempre visible con todas las opciones
+}
+
+function checkSelFields(){
+  checkPresionField();
+}
+
+function generarObsWeb(){
+  const h = _respHistData;
+  if(!h){ alert('No hay datos de consulta.'); return; }
+
+  const secSels = document.querySelectorAll('.resp-sec-sel');
+  const secChoices = Array.from(secSels).map(el=>({
+    tipo: el.dataset.secTipo,
+    val: el.value||'unica',
+    txt: el.tagName==='SELECT'?(el.options[el.selectedIndex]?.textContent||''):el.value
+  }));
+
+  const operador  = document.getElementById('resp-operador').value.trim();
+  const presion   = document.getElementById('resp-presion')?.value.trim()||'';
+  const emailTxt  = h.emailTxt||'';
+
+  const coChoice  = secChoices.find(s=>s.tipo==='contador');
+  const crChoice  = secChoices.find(s=>s.tipo==='conversor');
+  const psChoice  = secChoices.find(s=>s.tipo==='prueba_serie'||s.tipo==='unica');
+  const remChoice = secChoices.find(s=>s.tipo==='remota');
+
+  const coTxt = (coChoice?.txt||'').toLowerCase();
+  const crTxt = (crChoice?.txt||'').toLowerCase();
+  const coAlq = coTxt.includes('alquiler');
+  const crAlq = crTxt.includes('alquiler');
+  const crVerf= crTxt.includes('comprobación')||crTxt.includes('calibración')||crTxt.includes('in situ');
+  const crCes = crTxt.includes('cesión');
+
+  // Extract CO description from email text
+  const coDescLine = emailTxt.split('\n').find(l=>l.startsWith('| ') && !l.includes('Coste') && !l.includes('Prueba'));
+  const coDescMatch = coDescLine ? coDescLine.replace(/\|/g,'').trim().split(/\s{2,}/)[0] : '';
+
+  // Detect caducado/averiado from historial desc
+  const desc = (h.desc||'').toLowerCase();
+  const coCad = desc.includes('caducado')||emailTxt.toLowerCase().includes('caducado metrológicamente');
+  const coAv  = desc.includes('averiado')||emailTxt.toLowerCase().includes('averiado');
+
+  // Detect CR caducado from email
+  const crCad = emailTxt.toLowerCase().includes('conversor') && emailTxt.toLowerCase().includes('caducado');
+
+  let obs = [];
+
+  // CO observations
+  if(coAlq){
+    const coInfo = coDescMatch ? `CO Alquiler ${coDescMatch}` : 'CO Alquiler';
+    if(coAv){
+      obs.push(`CCO por pase a régimen de alquiler definitivo. Se ha de instalar ${coInfo} L-300. El CO propiedad de cliente no es necesario enviar a verificar por estar averiado.`);
+    } else if(coCad){
+      obs.push(`CCO por pase a régimen de alquiler definitivo. Se ha de instalar ${coInfo} L-300. El CO propiedad de cliente ha de enviarse a realizar prueba de entrada por parte de NEDGIA por estar caducada su verificación.`);
+    } else {
+      obs.push(`CCO por pase a régimen de alquiler definitivo. Se ha de instalar ${coInfo} L-300. El CO propiedad de cliente no es necesario enviar a verificar por estar vigente.`);
+    }
+  }
+
+  // CR observations
+  if(crAlq){
+    const presStr = presion ? presion + ' bar abs.' : 'XX bar abs.';
+    obs.push(`CCR por pase a régimen de alquiler definitivo. Instalar CR calibrado a ${presStr} Si no disponéis en stock solicitar a umedicion@nedgia.es`);
+    if(crCad){
+      obs.push(`Verificación de CR de Cliente con verificación caducada por pase a alquiler. Avisad a umedicion@nedgia.es una vez realizada para poder sustituir el equipo.`);
+    }
+  } else if(crVerf && crCad){
+    obs.push('Verificación de CR de Cliente con verificación caducada por pase a alquiler. Avisad a umedicion@nedgia.es una vez realizada para poder sustituir el equipo.');
+  } else if(crVerf){
+    obs.push('Verificacion de CR propiedad de cliente a petición suya.');
+  }
+
+  // Prueba en serie
+  if(psChoice && psChoice.tipo==='prueba_serie'){
+    obs.push('Ejecución de Prueba en serie de Contadores a petición de consumidor por CO propiedad de cliente.');
+  }
+
+  if(!obs.length){ alert('No se han podido generar observaciones para este caso.'); return; }
+
+  const txt = obs.join('\n\n');
+
+  // Show below the second email card
+  const wrap  = document.getElementById('resp-email-wrap');
+  let obsDiv = document.getElementById('resp-obs-web-card');
+  if(!obsDiv){
+    obsDiv = document.createElement('div');
+    obsDiv.id = 'resp-obs-web-card';
+    wrap.appendChild(obsDiv);
+  }
+  obsDiv.innerHTML = `
+    <div style="background:#fff;border:1px solid #ccd6e8;border-radius:4px;overflow:hidden;margin-top:14px;">
+      <div style="background:#5a7090;color:#fff;padding:11px 16px;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;">
+        <span>📋 Observaciones para la web</span>
+        <button onclick="navigator.clipboard.writeText(document.getElementById('resp-obs-web-txt').textContent).then(()=>this.textContent='✓ Copiado')" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;font-family:monospace;font-size:10px;padding:3px 10px;cursor:pointer;border-radius:2px;">Copiar</button>
+      </div>
+      <div style="padding:16px 18px;font-family:Arial,sans-serif;font-size:13px;line-height:1.7;color:#1c1a17;white-space:pre-wrap;" id="resp-obs-web-txt">${esc(txt)}</div>
+    </div>`;
+
+  wrap.style.display = 'block';
+  obsDiv.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+
+function setCRComp(val){
+  el('cr-comp-si').classList.toggle('prop-a', val==='SI');
+  el('cr-comp-no').classList.toggle('prop-a', val==='NO');
+  window._crComp = val;
+  recalc();
+}
+
+
+function generarTodo(){
+  // Read all form data BEFORE closing the modal
+  const _ids    = document.getElementById('resp-ids')?.value.trim()||'';
+  const _oper   = document.getElementById('resp-operador')?.value.trim()||'';
+  if(!_oper||!_ids){ alert('Por favor rellena el operador y el ID de OT.'); return; }
+
+  generarRespuesta();   // generates email, does NOT close modal
+  generarObsWeb();      // generates obs, does NOT close modal
+  closeRespModal();     // close once both are done
+}
+
+// Init
+renderHist();
+updateProgress();
+updateProgress();
+</script>
+
+
+<!-- RESPUESTA ACEPTACIÓN MODAL -->
+<div class="resp-modal" id="resp-modal" style="display:none;">
+  <div class="resp-box">
+    <div class="resp-hdr">
+      <span>✉ Generar respuesta de aceptación</span>
+      <button onclick="document.getElementById('resp-modal').remove?document.getElementById('resp-modal').style.display='none':null" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:12px;padding:3px 10px;cursor:pointer;border-radius:3px;" onclick="closeRespModal()">✕ Cerrar</button>
+    </div>
+    <div class="resp-body">
+      <div id="resp-context" style="font-size:11px;background:#e8eef7;padding:8px 10px;border-radius:3px;color:#1A3F6B;line-height:1.6;"></div>
+      <!-- Dynamic section options populated from email -->
+      <div id="resp-sec-container"></div>
+      <!-- Hidden for JS compatibility -->
+      <select id="resp-opcion" style="display:none;"></select>
+      <div class="resp-field" id="resp-oper-wrap">
+        <label id="resp-oper-label">Operador / Empresa asignada *</label>
+        <select id="resp-operador">
+          <option value="">&#x2014; Seleccionar &#x2014;</option>
+          <optgroup label="Alquiler (instalaci&#xF3;n)">
+            <option value="INCATEMA">INCATEMA</option>
+            <option value="TRADIVEL">TRADIVEL</option>
+            <option value="ICISA">ICISA</option>
+            <option value="DUALGAS">DUALGAS</option>
+          </optgroup>
+          <optgroup label="Comprobaci&#xF3;n (verificaci&#xF3;n)">
+            <option value="MUTSA">MUTSA</option>
+            <option value="TEYCO">TEYCO</option>
+            <option value="ISCAL">ISCAL</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="resp-field">
+        <label>ID(s) de Orden de Trabajo *</label>
+        <input id="resp-ids" placeholder="Ej: 204409 o 204409 + 204410">
+      </div>
+      <div class="resp-field" id="resp-verif-wrap">
+        <label>Verificador lazos CR <span style="font-weight:400;text-transform:none;letter-spacing:0;">(si aplica)</span></label>
+        <select id="resp-verif">
+          <option value="">&#x2014; No aplica &#x2014;</option>
+          <option value="MUTSA">MUTSA</option>
+          <option value="TEYCO">TEYCO</option>
+          <option value="ISCAL">ISCAL</option>
+        </select>
+      </div>
+      <div class="resp-field">
+        <label>ID OT verificador <span style="font-weight:400;text-transform:none;letter-spacing:0;">(si aplica)</span></label>
+        <input id="resp-verif-id" placeholder="Ej: 204998">
+      </div>
+      <div class="resp-field" id="resp-presion-wrap" style="display:none;">
+        <label>Presión ajuste CR (bar abs) <span style="font-weight:400;text-transform:none;letter-spacing:0;">— para observaciones web</span></label>
+        <input id="resp-presion" placeholder="Ej: 3,5">
+      </div>
+
+
+    </div>
+    <div class="resp-foot">
+      <button class="btn-cancel-resp" onclick="closeRespModal()">Cancelar</button>
+      <button class="btn-gen-resp" onclick="generarTodo();" style="flex:1;">✉ Generar correo cliente + 📋 Observaciones web</button>
+    </div>
+  </div>
+</div>
+
+<!-- SEGUNDO CORREO PREVIEW -->
+<div style="max-width:1060px;margin:0 auto;padding:0 20px 40px;" id="resp-email-wrap" style="display:none;">
+  <div id="resp-email-card"></div>
+</div>
+
+</body>
+</html>
